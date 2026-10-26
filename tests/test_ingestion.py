@@ -125,3 +125,28 @@ def test_utc_month_boundary(fixture_dir, tmp_path):
     )
     result = validate_export(target)
     assert result.rows["encounters"][0]["start"].isoformat() == "2024-01-31T22:30:00+00:00"
+
+
+def test_negative_duration_uses_utc_and_rejects_dependent_rows(fixture_dir, tmp_path):
+    target = mutate(
+        fixture_dir, tmp_path, "encounters",
+        lambda rows: rows[0].update(
+            START="2024-01-01T01:00:00+00:00", STOP="2024-01-01T02:00:00+02:00"
+        ),
+    )
+    result = validate_export(target)
+    assert any(r.table_name == "encounters" and r.reason == "STOP precedes START"
+               for r in result.rejected)
+    rejected_id = "10000000-0000-4000-8000-000000000001"
+    assert all(row["id"] != rejected_id for row in result.rows["encounters"])
+    assert all(row["encounter_id"] != rejected_id for row in result.rows["conditions"])
+    assert all(row["encounter_id"] != rejected_id for row in result.rows["observations"])
+
+
+def test_events_after_death_rejected(fixture_dir, tmp_path):
+    target = mutate(
+        fixture_dir, tmp_path, "patients",
+        lambda rows: rows[0].update(DEATHDATE="2023-12-31"),
+    )
+    result = validate_export(target)
+    assert any(r.reason == "event follows patient death" for r in result.rejected)

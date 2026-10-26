@@ -1,6 +1,6 @@
 """Database constraints, joins, idempotency, aggregation, and HTTP contracts."""
 
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -124,3 +124,24 @@ def test_database_rejects_cross_patient_encounter(loaded):
         row = session.scalar(select(Condition).where(Condition.code == "10509002"))
         row.encounter_id = "10000000-0000-4000-8000-000000000002"
         session.commit()
+
+
+def test_database_rejects_negative_encounter_duration(loaded):
+    with Session(loaded) as session, pytest.raises(IntegrityError):
+        row = session.scalar(select(Encounter))
+        row.stop = row.start - timedelta(seconds=1)
+        session.commit()
+
+
+@pytest.mark.parametrize("route", ["/cohort/summary", "/encounters/monthly", "/conditions/common"])
+def test_database_failures_return_sanitized_503(loaded, monkeypatch, route):
+    from sqlalchemy.exc import OperationalError
+
+    def unavailable(*args, **kwargs):
+        raise OperationalError("sensitive connection detail", {}, Exception("private"))
+
+    monkeypatch.setattr(loaded, "connect", unavailable)
+    with TestClient(create_app(loaded)) as client:
+        response = client.get(route)
+        assert response.status_code == 503
+        assert response.json() == {"detail": "Database or schema unavailable"}

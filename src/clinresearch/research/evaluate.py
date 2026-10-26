@@ -51,6 +51,14 @@ def evaluate(rows: list[dict], split_date: date) -> dict:
     cutoff = datetime.combine(split_date, datetime.min.time(), UTC)
     if len({row["patient_id"] for row in rows}) != len(rows):
         raise ValueError("Cohort must contain exactly one index per patient")
+    # Canonical order makes fitted coefficients and bootstrap draws input-order invariant.
+    rows = sorted(rows, key=lambda row: (row["discharge"], row["patient_id"]))
+    for row in rows:
+        if type(row["readmission_30d"]) is not int or row["readmission_30d"] not in (0, 1):
+            raise ValueError("Outcome must be the observed binary label 0 or 1")
+        values = np.asarray([row[feature] for feature in FEATURES], dtype=float)
+        if not np.isfinite(values).all() or (values < 0).any() or row["age"] < 18:
+            raise ValueError("Cohort features must be finite, nonnegative, and adult")
     train, test, purged = [], [], []
     for row in rows:
         discharge = datetime.fromisoformat(row["discharge"])

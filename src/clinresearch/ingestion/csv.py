@@ -217,6 +217,8 @@ def validate_export(directory: Path) -> ValidatedExport:
                     day = when.date() if isinstance(when, datetime) else when
                     if day < patient["birth_date"]:
                         raise ValueError("event precedes patient birth")
+                    if patient["death_date"] and day > patient["death_date"]:
+                        raise ValueError("event follows patient death")
                 if table in ("conditions", "observations") and row["encounter_id"]:
                     encounter = encounters.get(row["encounter_id"])
                     if encounter is None or encounter["patient_id"] != row["patient_id"]:

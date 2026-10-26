@@ -110,6 +110,8 @@ else:
             f"Observation end (exclusive): {report['observation_end_exclusive']}"
         )
         st.write("Cohort eligibility audit", report["cohort_audit"])
+        if report.get("cohort_flow"):
+            st.dataframe(pd.DataFrame(report["cohort_flow"]), hide_index=True)
         st.write("Simulated notes", report["notes"])
         evaluation = report["evaluation"]
         st.write("Temporal split", evaluation["split"])

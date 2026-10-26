@@ -6,13 +6,15 @@ from contextlib import asynccontextmanager
 from datetime import date
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy import Engine, select
 from sqlalchemy.exc import SQLAlchemyError
 
 from clinresearch.api.schemas import CohortSummary, CommonCondition, Health, MonthlyEncounters
 from clinresearch.database.models import Base
 from clinresearch.database.session import make_engine
+from clinresearch.research.report import validate_report
 from clinresearch.transformations.summaries import (
     cohort_summary,
     common_conditions,
@@ -35,6 +37,10 @@ def create_app(engine: Engine | None = None) -> FastAPI:
         lifespan=lifespan,
         description="Synthetic research demonstration. Not clinically validated.",
     )
+
+    @application.exception_handler(SQLAlchemyError)
+    async def database_error(request: Request, exc: SQLAlchemyError) -> JSONResponse:
+        return JSONResponse(status_code=503, content={"detail": "Database or schema unavailable"})
 
     @application.get("/health", response_model=Health)
     def health() -> dict:
@@ -61,33 +67,16 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     @application.get("/research/report")
     def research_report() -> dict:
         path = Path(os.environ.get("RESEARCH_REPORT_PATH", "reports/research/report.json"))
-        if not path.exists():
-            return {"status": "not_run", "synthetic_only": True}
         try:
-            report = json.loads(path.read_text())
-            if report["schema_version"] != 1 or report["synthetic_only"] is not True:
-                raise ValueError("Unsupported research report")
-            # Local cohort rows and note text are deliberately not API resources.
-            return {
-                "status": "available",
-                "report": {
-                    key: report[key]
-                    for key in (
-                        "schema_version",
-                        "synthetic_only",
-                        "generated_at",
-                        "cohort_sha256",
-                        "observation_end_exclusive",
-                        "cohort_audit",
-                        "notes",
-                        "evaluation",
-                    )
-                },
-            }
+            # Read once: handle disappearance, permissions, invalid UTF-8, and malformed payloads.
+            report = validate_report(json.loads(path.read_text(encoding="utf-8")))
+        except FileNotFoundError:
+            return {"status": "not_run", "synthetic_only": True}
         except (OSError, ValueError, KeyError, TypeError) as exc:
             raise HTTPException(
                 status_code=503, detail="Research report unavailable or invalid"
             ) from exc
+        return {"status": "available", "report": report}
 
     return application
 
