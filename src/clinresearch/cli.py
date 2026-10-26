@@ -1,0 +1,54 @@
+"""Command-line schema creation and audited CSV ingestion."""
+
+import argparse
+import json
+import logging
+from dataclasses import asdict
+from pathlib import Path
+
+from clinresearch.database.load import load_export
+from clinresearch.database.session import initialize, make_engine
+from clinresearch.ingestion.csv import SchemaError, validate_export
+
+
+def main() -> None:
+    """Import synthetic records; exit 2 after a partial load with rejected rows."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="command", required=True)
+    sub.add_parser("init-db")
+    ingest = sub.add_parser("ingest")
+    ingest.add_argument("directory", type=Path)
+    ingest.add_argument("--report", type=Path, required=True)
+    args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    engine = make_engine()
+    if args.command == "init-db":
+        initialize(engine)
+        return
+    try:
+        export = validate_export(args.directory)
+    except SchemaError as exc:
+        parser.exit(1, f"Schema validation failed; no records loaded: {exc}\n")
+    # Check report path before committing anything to the database.
+    args.report.parent.mkdir(parents=True, exist_ok=True)
+    with args.report.open("w") as output:
+        json.dump(
+            {
+                "status": "validated",
+                "tables": export.report(),
+                "rejections": [asdict(r) for r in export.rejected],
+            },
+            output,
+            indent=2,
+        )
+    initialize(engine)
+    report = load_export(engine, export)
+    report["rejections"] = [asdict(r) for r in export.rejected]
+    args.report.write_text(json.dumps(report, indent=2) + "\n")
+    print(json.dumps({k: v for k, v in report.items() if k != "rejections"}, indent=2))
+    if export.rejected:
+        parser.exit(2, "Accepted rows loaded; inspect rejection report before proceeding.\n")
+
+
+if __name__ == "__main__":
+    main()
