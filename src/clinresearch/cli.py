@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 from dataclasses import asdict
+from datetime import date
 from pathlib import Path
 
 from clinresearch.database.load import load_export
@@ -19,9 +20,22 @@ def main() -> None:
     ingest = sub.add_parser("ingest")
     ingest.add_argument("directory", type=Path)
     ingest.add_argument("--report", type=Path, required=True)
+    research = sub.add_parser("analyze", help="Simulated notes and temporal readmission evaluation")
+    research.add_argument("--observation-end", type=date.fromisoformat, required=True)
+    research.add_argument("--split-date", type=date.fromisoformat, required=True)
+    research.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     engine = make_engine()
+    if args.command == "analyze":
+        from clinresearch.research.run import run_analysis
+
+        try:
+            report = run_analysis(engine, args.observation_end, args.split_date, args.output)
+        except (ValueError, FileExistsError) as exc:
+            parser.exit(1, f"Analysis not written: {exc}\n")
+        print(json.dumps(report, indent=2))
+        return
     if args.command == "init-db":
         initialize(engine)
         return

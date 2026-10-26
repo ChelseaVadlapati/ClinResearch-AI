@@ -41,3 +41,35 @@ observations.csv  c9c7b3caff1e152c5019128c3c9c5e4e8048f575b7470cbd8552493981560f
 To reproduce automated checks, follow the README's PostgreSQL test commands.
 To repeat generator verification, use two new output directories with population
 argument 2 and compare the four CSVs. Do not overwrite existing outputs.
+
+## Milestone 2 verification — 2026-10-26
+
+- Python 3.11.17 and 3.12.14: **69 tests passed on each version**, with SQLite and
+  isolated PostgreSQL schemas enabled. Includes three dashboard report states,
+  the CLI, temporal purging, future-record invariance, and training-only scaling.
+- Ruff lint/format and whitespace checks passed. The updated hash lock installed
+  on both Python versions. The existing Starlette TestClient deprecation warning
+  remains non-blocking.
+- Updated Docker image built; PostgreSQL, API, and dashboard became healthy.
+  Existing HTTP smoke checks passed, and `/research/report` returned the saved
+  fixture analysis with `insufficient_data`. The fixture has no eligible inpatient
+  index discharges; no scores or notes were invented.
+- Synthea v3.3.0 generated population argument 200 with the script's fixed seeds,
+  dates, and locale. Export contained 234 patients (including deceased overflow),
+  48,198 encounters, 25,272 conditions, and 646,413 observations. The validator
+  rejected 116 exact normalized observation duplicates, accepting 646,297.
+  Import exited 2 as documented; all rejection reasons were inspected. This run
+  used a separate SQLite database and did not alter the PostgreSQL demo cohort.
+- The generated cohort, using observation end 2025-01-01 and a preselected split
+  date 2010-01-01, yielded 122 eligible patients and 122 labeled simulated notes.
+  There was only **one** positive outcome: train 82 patients/1 positive, test
+  39/0, and 1 purged patient. The evaluator correctly withheld model fitting and
+  metrics. This is insufficient for a meaningful readmission evaluation.
+- The fitting, baseline comparison, metrics, calibration bins, and seeded
+  bootstrap paths were exercised using a deliberately constructed 40-patient
+  software fixture. This verifies executable code, **not research performance**.
+  No trained model validated on a sufficiently powered Synthea cohort is claimed.
+
+Generated files remain under ignored `data/research-validation/`; the default
+Docker demo report is under ignored `reports/research/`. Generated records and
+model artifacts are not committed. Hosted CI is a separate check after push.

@@ -30,6 +30,8 @@ services:
         condition: service_healthy
   api:
     <<: *app
+    volumes:
+      - ./reports:/app/reports:ro
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:

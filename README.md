@@ -7,8 +7,21 @@ serves a FastAPI API and Streamlit/Plotly dashboard.
 
 **Synthetic data only. Not clinically validated. Not for diagnosis, treatment,
 or real patient information.** This is an independent portfolio demonstration,
-not a University of Florida product or an endorsed clinical system. There is no
-prediction model or claimed model-performance metric.
+not a University of Florida product or an endorsed clinical system. An optional
+research workflow evaluates a fixed readmission baseline on synthetic records;
+its scores do not establish clinical prediction performance.
+
+## Milestones
+
+1. **Clinical data platform:** validated Synthea ingestion, normalized SQL tables,
+   data-quality audit, API, research dashboard, and automated tests.
+2. **NLP and predictive analysis:** clearly labeled simulated discharge notes,
+   rule-based concept extraction, explicit 30-day inpatient-return cohort,
+   leakage-controlled temporal evaluation, and a saved dashboard report.
+   See [research workflow and limitations](docs/research.md) for commands,
+   eligibility rules, features, and evaluation definitions. The three-patient
+   fixture is too small for model evaluation and reports insufficient data.
+3. **Not yet specified.**
 
 ## Quick demo with Docker Compose
 
@@ -143,6 +156,7 @@ The fixture-specific smoke script intentionally fails on a combined dataset.
 | `GET /cohort/summary?as_of=2025-01-01` | Counts, demographics, age statistics, latest import quality |
 | `GET /encounters/monthly` | UTC month and encounter count, including gaps |
 | `GET /conditions/common?limit=10` | Coding system/code, description, occurrence and distinct-patient counts |
+| `GET /research/report` | Saved aggregate NLP/model report, or explicit not-run status |
 
 `limit` accepts 1–100. Invalid dates/limits return 422. `as_of` affects ages only;
 all records remain in the cohort. The API exposes aggregate data, not patient
@@ -180,6 +194,7 @@ src/clinresearch/
   api/               FastAPI endpoints and Pydantic response contracts
   dashboard/         Streamlit UI with Plotly charts
   cli.py             schema creation and import commands
+  research/          simulated notes, cohort definitions, temporal model evaluation
 tests/fixtures/      tiny deterministic, fully fictional CSV dataset
 docs/               implementation plan, architecture, validation rules
 scripts/            local configuration, pinned Synthea generation, HTTP smoke check
@@ -189,7 +204,7 @@ scripts/            local configuration, pinned Synthea generation, HTTP smoke c
 
 Synthetic records do not establish clinical validity, representativeness,
 equity, or transportability to any real population. This project does not infer
-clinical conclusions, predict outcomes, or claim that synthetic text is a real
+clinical conclusions, predict real patient outcomes, or claim that simulated text is a real
 clinical note. Frequencies are descriptive software outputs, not epidemiologic
 estimates. Review missingness and rejected rows before interpreting any summary.
 

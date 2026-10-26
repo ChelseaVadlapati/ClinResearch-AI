@@ -13,6 +13,8 @@
 7. Document tested demo commands, Synthea generation, architecture, and limitations;
    commit on a feature branch and prepare a PR.
 
-No prediction model, clinical validation, real patient data, or inferred scientific
-findings are in scope. SQLite is a fast unit-test backend; PostgreSQL integration
+Prediction modeling was outside Phase 1; Milestone 2 adds the bounded synthetic
+research workflow in [research.md](research.md). Clinical validation, real patient
+data, and inferred scientific findings remain out of scope.
+SQLite is a fast unit-test backend; PostgreSQL integration
 must be tested separately. Invalid rows must be logged and represented in reports.

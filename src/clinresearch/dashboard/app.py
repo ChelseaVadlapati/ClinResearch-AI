@@ -88,3 +88,42 @@ if quality["latest_import"]:
         st.warning("Latest import rejected rows. Inspect its JSON report or rejected_rows table.")
 else:
     st.info("No import audit is available.")
+
+st.header("NLP and readmission research")
+st.caption(
+    "Saved analysis of synthetic data. Results are a snapshot "
+    "and do not refresh when data is imported."
+)
+try:
+    research = fetch(f"{base_url}/research/report")
+except (requests.RequestException, ValueError):
+    st.warning(
+        "Research report could not be loaded. The clinical data dashboard remains available."
+    )
+else:
+    if research["status"] == "not_run":
+        st.info("No research run yet. Run the documented clinresearch analyze command.")
+    else:
+        report = research["report"]
+        st.caption(
+            f"Generated {report['generated_at']} · "
+            f"Observation end (exclusive): {report['observation_end_exclusive']}"
+        )
+        st.write("Cohort eligibility audit", report["cohort_audit"])
+        st.write("Simulated notes", report["notes"])
+        evaluation = report["evaluation"]
+        st.write("Temporal split", evaluation["split"])
+        if evaluation["status"] == "insufficient_data":
+            st.info("Model not trained: " + evaluation["reason"])
+        else:
+            st.warning(
+                "Synthetic holdout scores are not evidence of clinical prediction performance."
+            )
+            st.write("Logistic regression holdout metrics", evaluation["metrics"])
+            st.write("Training-prevalence constant baseline", evaluation["constant_baseline"])
+            st.write("95% bootstrap intervals", evaluation["bootstrap_95_percent_intervals"])
+            st.dataframe(pd.DataFrame(evaluation["calibration"]), hide_index=True)
+        with st.expander("Research definitions and limitations"):
+            st.write("Features", evaluation["features"])
+            for limitation in evaluation["limitations"]:
+                st.write("• " + limitation)
