@@ -54,6 +54,11 @@ source control and URL-encode special characters in database URLs (the setup
 script generates URL-safe hex). Changing a password in `.env` does not change an
 already initialized PostgreSQL volume's password. Reports and data are ignored.
 
+If startup reports that port 5432 is already in use, add `POSTGRES_PORT=5433` to
+`.env` and change the port in its `DATABASE_URL` from `localhost:5432` to
+`localhost:5433`. Then rerun `docker compose up -d --wait`. Containers still use
+the internal database port 5432. On macOS, use `python3` if `python` is unavailable.
+
 ### Builds behind a certificate proxy
 
 Normal Docker builds use system certificate trust. In an environment with an
