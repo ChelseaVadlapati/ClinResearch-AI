@@ -164,3 +164,182 @@ python scripts/smoke_research.py
 Choose a fresh generation/output directory when reproducing. The actual paired
 export is ignored under `data/fhir-verification`. Hosted CI evidence is linked
 in the milestone PR; later milestones must not start until that check passes.
+
+Milestone 1 hosted gate: [Actions run 40536007024](https://github.com/ChelseaVadlapati/ClinResearch-AI/actions/runs/40536007024)
+passed Python 3.11/3.12 PostgreSQL tests and Compose smoke on `88c9024`.
+Milestone 2 starts on a stacked branch from milestone 1; neither PR is auto-merged.
+
+## Portfolio milestone 2 — versioned research cohorts (2026-10-27)
+
+Stacked on milestone 1. Versioned configuration preserves the 30-day endpoint,
+365-day lookback and seed while allowing adult age bounds, index date windows and
+stricter class/sample gates. Windows filter indices, not lookback/outcome records.
+Added reconciled exclusions, config hash, complete saved config, descriptive
+quartiles/histograms, class counts and conditional Wilson intervals. Added data
+dictionary, model card and protocol updates; no additional model is justified.
+
+Python 3.12 with SQLite/PostgreSQL: **147 passed, 1 skipped** (same SQLite-only
+case). Ruff lint/format passed. Live API/Streamlit regressions pass. Compose config
+analysis in fresh `reports/m2-config` returns zero eligible fixture indices and
+`insufficient_data`, with no model or metrics. Existing CSV/API/dashboard and
+research smoke checks remain required. No scientific performance is inferred.
+
+```bash
+ruff check .
+ruff format --check .
+set -a; source .env; set +a
+TEST_DATABASE_URL="$DATABASE_URL" pytest -q
+docker compose run --rm --no-deps ingest python -m clinresearch.cli analyze \
+  --observation-end 2025-01-01 --split-date 2024-01-01 \
+  --config configs/adult-return-v1.json --output /app/reports/m2-config
+python scripts/smoke_demo.py
+python scripts/smoke_research.py
+```
+
+Use README's source-mounted Compose configuration and a new output directory.
+The example requires 100 patients and 20 of each class per partition, not a power
+calculation. No-config behavior retains historical 10/2 software guardrails.
+Descriptive Wilson intervals are withheld below 20 patients or 2 of either class.
+Clinical validity, outside-care completeness and recording-time availability remain
+unestablished. Hosted CI is checked in the milestone PR before proceeding.
+
+Milestone 2 hosted gate: [Actions run 40537160134](https://github.com/ChelseaVadlapati/ClinResearch-AI/actions/runs/40537160134)
+passed all Python/PostgreSQL and Compose jobs on `3a10e38` before NLP work began.
+
+## Portfolio milestone 3 — experimental CPU NLP (2026-10-27)
+
+Preserved the deterministic extractor and created a separate 48-train/24-test
+synthetic assertion benchmark. The assistant authored labels independently of the
+note template/extractor; there is no independent human/clinical review. Pinned
+Apache-2.0-declared MiniLM revision and asset SHA-256 values, with optional CPU
+ONNX/tokenizer dependencies constrained to the application's base lock versions.
+No NLP information is added to inpatient-return features.
+
+Python 3.12 SQLite/PostgreSQL suite: **152 passed, 1 skipped**. Ruff lint/format
+passed; five NLP-focused regressions also rerun after input-contract hardening.
+Compose API/dashboard/research smoke and baseline-only NLP command passed.
+Actual frozen MiniLM inference ran on CPU with fixed logistic head and produced
+the committed `benchmarks/nlp/verified-results-v1.json`; offline rerun was
+byte-identical. The first attempt could not write to root-owned Compose reports;
+it was rerun successfully to a fresh writable data directory. No missing run was
+substituted with fabricated predictions.
+
+Exact transformer reproduction and optional environment commands are in
+`docs/nlp-evaluation.md`. Actual holdout macro F1: rules 0.5984848485, TF-IDF
+0.7892857143, MiniLM 0.7641025641. These are tiny synthetic software-benchmark
+results, not clinical accuracy, model superiority or real-world validation.
+All 10 rule errors and 5 errors for each learned classifier are retained. Exact
+rule spans matched 24/24 controlled-vocabulary snippets, not general clinical NLP.
+
+```bash
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+set -a; source .env; set +a
+TEST_DATABASE_URL="$DATABASE_URL" .venv/bin/pytest -q
+.venv-nlp/bin/python -m clinresearch.nlp.benchmark --output data/nlp-verification-v1 \
+  --model-lock benchmarks/nlp/model-lock.json --cache data/models/minilm-v1 --download-model
+.venv-nlp/bin/python -m clinresearch.nlp.benchmark --output data/nlp-verification-repeat \
+  --model-lock benchmarks/nlp/model-lock.json --cache data/models/minilm-v1
+cmp data/nlp-verification-v1/report.json data/nlp-verification-repeat/report.json
+python scripts/smoke_demo.py
+python scripts/smoke_research.py
+```
+
+Use fresh output paths. Hosted CI includes a separate pinned CPU NLP job and
+archives its computed report, alongside existing lint/tests/Compose checks.
+
+Milestone 3 hosted gate: [Actions run 40538887923](https://github.com/ChelseaVadlapati/ClinResearch-AI/actions/runs/40538887923)
+passed Python 3.11/3.12 PostgreSQL tests, Compose smoke and actual pinned CPU NLP
+inference on `7f2ca04` before dashboard work began.
+
+## Portfolio milestone 4 — interactive research dashboard (2026-10-27)
+
+Added backend age/gender/matching-encounter selection with snapshot-consistent
+PostgreSQL aggregates, aggregate CSV/JSON downloads, latest-source/import/software
+metadata, saved study configuration, class/feature distributions and conditional
+calibration views. Saved study reports are explicitly independent of dashboard
+filters. A separate validated NLP endpoint exposes metrics only, excluding local
+error text, identifiers and source filenames. Added empty/error states, labeled
+controls and chart-table alternatives; retained synthetic/not-clinically-validated
+warnings throughout.
+
+Full Python 3.12 SQLite/PostgreSQL suite: **166 passed, 1 skipped**. Ruff lint and
+format passed. Existing Compose startup/API/dashboard/research smoke passed; new
+`scripts/smoke_explore.py` passed against live services. The API was also configured
+with the actual `reports/m2-config/report.json` and `data/nlp-verification-v1/report.json`:
+filtered counts and evaluated synthetic NLP aggregates were verified, without
+publishing error examples. Live Streamlit filter tests select F then inpatient,
+verifying counts change from 3 patients to 1 to 0 without exceptions.
+
+Playwright inspected Chromium at 1440x1050 and 390x844; no document-level horizontal
+overflow at mobile width. Actual screenshots are `docs/images/portfolio-dashboard.png`
+and `portfolio-mobile.png`. These are software UI checks, not a formal accessibility
+audit or clinical validation. Local review used a temporary Compose override for
+report paths; use equivalent API environment settings for your selected artifacts.
+
+```bash
+ruff check .
+ruff format --check .
+set -a; source .env; set +a
+TEST_DATABASE_URL="$DATABASE_URL" pytest -q
+python scripts/smoke_demo.py
+python scripts/smoke_research.py
+python scripts/smoke_explore.py
+```
+
+See `docs/dashboard.md` for filter semantics. Import quality is database-wide,
+while demographics and records summarize selected patients' full history. Latest
+batch provenance does not prove the provenance of retained rows from earlier imports.
+
+Milestone 4 hosted run 40540421372 exposed a source-mounted metadata assumption:
+`importlib.metadata.version` failed when the project itself was not installed.
+Fixed by reading the version from pyproject.toml in a source checkout, with an
+explicit unknown fallback when neither source nor package metadata exists.
+Added an API regression for missing package metadata on both databases; focused
+exploration suite **16 passed**. This is a corrected hosted failure, not a claimed
+successful first run. The replacement Actions result is linked in PR #5.
+
+Corrected milestone 4 hosted gate: [40541361434](https://github.com/ChelseaVadlapati/ClinResearch-AI/actions/runs/40541361434), all four jobs passed.
+
+## Portfolio milestone 5 — reproducibility and recovery (2026-10-27)
+
+Final local Python 3.12 suite with SQLite and PostgreSQL: **178 passed, 1 skipped**
+(40.97 seconds). The skip is the intentional SQLite-only legacy-constraint bypass
+fixture on PostgreSQL. Ruff lint and formatting passed (67 files). Existing
+Starlette TestClient deprecation warning remains; it is not a test failure.
+New regressions cover sanitized configuration errors, JSON logging, demographic
+updates that invalidate retained events, rollback followed by successful reimport,
+unwritable reports before loading, and report failure after a committed import.
+
+```bash
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+set -a; source .env; set +a
+TEST_DATABASE_URL="$DATABASE_URL" .venv/bin/pytest -q
+DEMO_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt scripts/demo.sh
+```
+
+The CA option was required by this managed environment's certificate proxy; omit it
+on ordinary installations. The one-command demo passed Compose readiness and all
+three HTTP smoke scripts using a separate project and existing source-mounted
+images. It served dashboard port 18501 and API port 18000; artifacts were saved in
+`reports/demo-0c87e7bc178d46418bed9921170204e0`. A Chromium check verified the live
+cohort, untrained-model state and transformer `not_run` label. Prior volumes and
+artifacts were preserved. The CPU transformer experiment remains separately
+verified in milestone 3; the lightweight demo does not run it.
+
+Actual larger-export benchmarks accepted 73,773 records, with zero inserts/updates
+on repeat imports in both databases. Exact measurements, source hashes, hardware,
+rejection counts and commands are in [performance.md](performance.md) and
+`docs/benchmarks/*.json`. The resulting cohort had 11 eligible indices and zero
+observed positives: `insufficient_data`, no fitted model or fabricated scores.
+These single-run timings do not establish clinical validity or production scale.
+
+`uv build --wheel --out-dir /tmp/clinresearch-wheel` succeeded; the wheel includes
+Alembic migration files and the optional NLP workflow. This packaging check did
+not rebuild an application container. The final milestone PR links its hosted
+Actions results, including the new one-command Compose regression gate.
+
+Operational/privacy boundaries and recovery commands are documented in
+[security-and-operations.md](security-and-operations.md); the five-minute demo and
+implemented-feature-only resume description are in [interview-demo.md](interview-demo.md).

@@ -1,0 +1,408 @@
+{
+  "schema_version": 1,
+  "synthetic_only": true,
+  "dataset_version": "synthetic-assertions-v1",
+  "dataset_sha256": "1fa6a0a6b398cad0c6bc53c1c4a3e4739792bee58e9cfb5ee1a44b68e9b3516a",
+  "provenance": "Individually authored and labeled synthetic software benchmark by the coding assistant, independent of simulate_note/extract_concepts. No independent human or clinical annotation review. Fixed split before evaluation.",
+  "train_examples": 48,
+  "test_examples": 24,
+  "task": "Four-way assertion classification of one annotated concept per snippet",
+  "seed": 42,
+  "model": {
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "license": "Apache-2.0 (model card declaration)",
+    "files": [
+      {
+        "remote": "onnx/model.onnx",
+        "local": "model.onnx",
+        "sha256": "6fd5d72fe4589f189f8ebc006442dbb529bb7ce38f8082112682524616046452"
+      },
+      {
+        "remote": "tokenizer.json",
+        "local": "tokenizer.json",
+        "sha256": "be50c3628f2bf5bb5e3a7f17b1f74611b2561a3a27eeab05e5aa30f411572037"
+      },
+      {
+        "remote": "README.md",
+        "local": "README.md",
+        "sha256": "dcd602d2fd35c203a247304a06fec6654a12f7941b739f9221a064fe8dc3b7f0"
+      }
+    ],
+    "max_tokens": 256,
+    "pooling": "attention-masked mean then L2 normalization",
+    "provider": "CPUExecutionProvider"
+  },
+  "transformer_status": "evaluated",
+  "versions": {
+    "scikit-learn": "1.7.2",
+    "numpy": "2.4.6",
+    "onnxruntime": "1.31.1",
+    "tokenizers": "0.23.3"
+  },
+  "rule_exact_spans": {
+    "true_positive": 24,
+    "predicted": 24,
+    "gold": 24,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  },
+  "results": {
+    "tfidf_logistic": {
+      "classification": {
+        "present": {
+          "precision": 0.6666666666666666,
+          "recall": 0.6666666666666666,
+          "f1-score": 0.6666666666666666,
+          "support": 6.0
+        },
+        "negated": {
+          "precision": 0.8333333333333334,
+          "recall": 0.8333333333333334,
+          "f1-score": 0.8333333333333334,
+          "support": 6.0
+        },
+        "uncertain": {
+          "precision": 0.75,
+          "recall": 1.0,
+          "f1-score": 0.8571428571428571,
+          "support": 6.0
+        },
+        "family": {
+          "precision": 1.0,
+          "recall": 0.6666666666666666,
+          "f1-score": 0.8,
+          "support": 6.0
+        },
+        "accuracy": 0.7916666666666666,
+        "macro avg": {
+          "precision": 0.8125,
+          "recall": 0.7916666666666666,
+          "f1-score": 0.7892857142857144,
+          "support": 24.0
+        },
+        "weighted avg": {
+          "precision": 0.8125,
+          "recall": 0.7916666666666666,
+          "f1-score": 0.7892857142857143,
+          "support": 24.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          4,
+          1,
+          1,
+          0
+        ],
+        [
+          0,
+          5,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          6,
+          0
+        ],
+        [
+          2,
+          0,
+          0,
+          4
+        ]
+      ],
+      "label_order": [
+        "present",
+        "negated",
+        "uncertain",
+        "family"
+      ]
+    },
+    "rules": {
+      "classification": {
+        "present": {
+          "precision": 0.35714285714285715,
+          "recall": 0.8333333333333334,
+          "f1-score": 0.5,
+          "support": 6.0
+        },
+        "negated": {
+          "precision": 0.8,
+          "recall": 0.6666666666666666,
+          "f1-score": 0.7272727272727273,
+          "support": 6.0
+        },
+        "uncertain": {
+          "precision": 1.0,
+          "recall": 0.3333333333333333,
+          "f1-score": 0.5,
+          "support": 6.0
+        },
+        "family": {
+          "precision": 1.0,
+          "recall": 0.5,
+          "f1-score": 0.6666666666666666,
+          "support": 6.0
+        },
+        "accuracy": 0.5833333333333334,
+        "macro avg": {
+          "precision": 0.7892857142857144,
+          "recall": 0.5833333333333333,
+          "f1-score": 0.5984848484848485,
+          "support": 24.0
+        },
+        "weighted avg": {
+          "precision": 0.7892857142857143,
+          "recall": 0.5833333333333334,
+          "f1-score": 0.5984848484848485,
+          "support": 24.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          5,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          4,
+          0,
+          0
+        ],
+        [
+          4,
+          0,
+          2,
+          0
+        ],
+        [
+          3,
+          0,
+          0,
+          3
+        ]
+      ],
+      "label_order": [
+        "present",
+        "negated",
+        "uncertain",
+        "family"
+      ]
+    },
+    "frozen_minilm_logistic": {
+      "classification": {
+        "present": {
+          "precision": 1.0,
+          "recall": 0.3333333333333333,
+          "f1-score": 0.5,
+          "support": 6.0
+        },
+        "negated": {
+          "precision": 0.8333333333333334,
+          "recall": 0.8333333333333334,
+          "f1-score": 0.8333333333333334,
+          "support": 6.0
+        },
+        "uncertain": {
+          "precision": 0.6666666666666666,
+          "recall": 1.0,
+          "f1-score": 0.8,
+          "support": 6.0
+        },
+        "family": {
+          "precision": 0.8571428571428571,
+          "recall": 1.0,
+          "f1-score": 0.9230769230769231,
+          "support": 6.0
+        },
+        "accuracy": 0.7916666666666666,
+        "macro avg": {
+          "precision": 0.8392857142857143,
+          "recall": 0.7916666666666667,
+          "f1-score": 0.7641025641025643,
+          "support": 24.0
+        },
+        "weighted avg": {
+          "precision": 0.8392857142857143,
+          "recall": 0.7916666666666666,
+          "f1-score": 0.764102564102564,
+          "support": 24.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          2,
+          1,
+          2,
+          1
+        ],
+        [
+          0,
+          5,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          6,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          6
+        ]
+      ],
+      "label_order": [
+        "present",
+        "negated",
+        "uncertain",
+        "family"
+      ]
+    }
+  },
+  "errors": {
+    "tfidf_logistic": [
+      {
+        "id": "test-present-4",
+        "text": "The patient, unlike her parents, has hypertension.",
+        "expected": "present",
+        "predicted": "negated"
+      },
+      {
+        "id": "test-present-5",
+        "text": "Laboratory findings establish chronic kidney disease.",
+        "expected": "present",
+        "predicted": "uncertain"
+      },
+      {
+        "id": "test-negated-4",
+        "text": "Repeat measurements did not establish hypertension.",
+        "expected": "negated",
+        "predicted": "uncertain"
+      },
+      {
+        "id": "test-family-0",
+        "text": "The sister uses an inhaler for asthma.",
+        "expected": "family",
+        "predicted": "present"
+      },
+      {
+        "id": "test-family-4",
+        "text": "An uncle takes medication for hypertension.",
+        "expected": "family",
+        "predicted": "present"
+      }
+    ],
+    "rules": [
+      {
+        "id": "test-present-2",
+        "text": "No chest pain today; established heart failure remains under treatment.",
+        "expected": "present",
+        "predicted": "negated"
+      },
+      {
+        "id": "test-negated-0",
+        "text": "Pulmonary assessment ruled out asthma.",
+        "expected": "negated",
+        "predicted": "present"
+      },
+      {
+        "id": "test-negated-2",
+        "text": "Heart failure is absent on the completed evaluation.",
+        "expected": "negated",
+        "predicted": "present"
+      },
+      {
+        "id": "test-uncertain-0",
+        "text": "Could these symptoms represent asthma?",
+        "expected": "uncertain",
+        "predicted": "present"
+      },
+      {
+        "id": "test-uncertain-1",
+        "text": "Diabetes is a possibility pending another test.",
+        "expected": "uncertain",
+        "predicted": "present"
+      },
+      {
+        "id": "test-uncertain-2",
+        "text": "The differential still includes heart failure.",
+        "expected": "uncertain",
+        "predicted": "present"
+      },
+      {
+        "id": "test-uncertain-4",
+        "text": "Hypertension may explain these readings.",
+        "expected": "uncertain",
+        "predicted": "present"
+      },
+      {
+        "id": "test-family-0",
+        "text": "The sister uses an inhaler for asthma.",
+        "expected": "family",
+        "predicted": "present"
+      },
+      {
+        "id": "test-family-1",
+        "text": "Diabetes was recorded for the maternal grandfather.",
+        "expected": "family",
+        "predicted": "present"
+      },
+      {
+        "id": "test-family-4",
+        "text": "An uncle takes medication for hypertension.",
+        "expected": "family",
+        "predicted": "present"
+      }
+    ],
+    "frozen_minilm_logistic": [
+      {
+        "id": "test-present-0",
+        "text": "Confirmed asthma is the reason for this follow-up.",
+        "expected": "present",
+        "predicted": "uncertain"
+      },
+      {
+        "id": "test-present-2",
+        "text": "No chest pain today; established heart failure remains under treatment.",
+        "expected": "present",
+        "predicted": "negated"
+      },
+      {
+        "id": "test-present-4",
+        "text": "The patient, unlike her parents, has hypertension.",
+        "expected": "present",
+        "predicted": "family"
+      },
+      {
+        "id": "test-present-5",
+        "text": "Laboratory findings establish chronic kidney disease.",
+        "expected": "present",
+        "predicted": "uncertain"
+      },
+      {
+        "id": "test-negated-0",
+        "text": "Pulmonary assessment ruled out asthma.",
+        "expected": "negated",
+        "predicted": "uncertain"
+      }
+    ]
+  },
+  "limitations": [
+    "Small assistant-authored synthetic benchmark without independent human review.",
+    "No clinical NLP accuracy or real-note generalization claim.",
+    "Test labels are held out from fitting; pretraining contamination is unknown.",
+    "Transformer predicts assertions only, not spans or new clinical concepts.",
+    "One annotated mention per snippet; complex document-level relations untested.",
+    "No hyperparameter selection or significance testing on this small holdout."
+  ]
+}

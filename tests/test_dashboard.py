@@ -28,6 +28,7 @@ def test_dashboard_with_live_api(loaded, monkeypatch, tmp_path, research_state):
             report["cohort_audit"] = {"eligible_patients": 40, "positive_outcomes": 20}
             report["notes"]["count"] = 40
             report.pop("cohort_flow", None)
+            report.pop("descriptive", None)
             report_path.write_text(json.dumps(report))
         if research_state == "invalid":
             report_path.write_text('{"schema_version": 1, "notes": []}')
@@ -59,9 +60,17 @@ def test_dashboard_with_live_api(loaded, monkeypatch, tmp_path, research_state):
             assert any("could not be loaded" in warning.value for warning in app.warning)
         else:
             assert any("Synthetic holdout scores" in warning.value for warning in app.warning)
-        app.selectbox[0].select("race").run()
+        app.selectbox(key="dimension").select("race").run()
         assert not app.exception
-        assert app.selectbox[0].value == "race"
+        assert app.selectbox(key="dimension").value == "race"
+        if research_state == "not_run":
+            app.checkbox(key="enable_filters").check().run()
+            app.selectbox(key="gender_filter").select("F").run()
+            assert [metric.value for metric in app.metric][:4] == ["1", "2", "2", "2"]
+            app.selectbox(key="class_filter").select("inpatient").run()
+            assert [metric.value for metric in app.metric][:4] == ["0", "0", "0", "0"]
+            assert any("No patients match" in info.value for info in app.info)
+            assert not app.exception
     finally:
         server.should_exit = True
         thread.join(timeout=10)

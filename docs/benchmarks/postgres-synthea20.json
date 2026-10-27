@@ -1,0 +1,118 @@
+{
+  "synthetic_only": true,
+  "benchmark_type": "single sequential run, warm OS cache possible",
+  "hardware": {
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logical_cpus": 3,
+    "available_cpus": 3,
+    "memory_limit_bytes": "8589934592",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+    "python": "3.12.14",
+    "peak_process_rss_kib_linux": 506104
+  },
+  "database": {
+    "kind": "postgresql",
+    "version": "PostgreSQL 16.15 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit"
+  },
+  "input_sha256": {
+    "patients.csv": "66d0c367483c97b44735a57ea349c9ead8eb3bcc45eeb204f8bd1e94a93213f4",
+    "encounters.csv": "8d9caf3b41beed06c38ef78e3582a2b63945b970c8220e88f444129422d609b6",
+    "conditions.csv": "1311cf5779245c0511fa2ebb1fb4fb939c6d167b68490d4befeaf269c46df8d7",
+    "observations.csv": "54fde627bbae99738297a962f7475649ce0ea9d9bd87199bac400640c61eb875"
+  },
+  "tables": {
+    "patients": {
+      "input": 23,
+      "accepted": 23,
+      "rejected": 0
+    },
+    "encounters": {
+      "input": 4177,
+      "accepted": 4175,
+      "rejected": 2
+    },
+    "conditions": {
+      "input": 2617,
+      "accepted": 2617,
+      "rejected": 0
+    },
+    "observations": {
+      "input": 66978,
+      "accepted": 66958,
+      "rejected": 20
+    }
+  },
+  "timings": {
+    "validate_seconds": 1.5352716389970738,
+    "migration_seconds": 0.09249348400044255,
+    "initial_load_seconds": 9.080301468005928,
+    "repeat_load_seconds": 2.562002227001358,
+    "aggregate_seconds": 0.10942380699998466,
+    "research_seconds": 0.38295816800382454
+  },
+  "initial_changes": {
+    "patients": {
+      "inserted": 23,
+      "updated": 0
+    },
+    "encounters": {
+      "inserted": 4175,
+      "updated": 0
+    },
+    "conditions": {
+      "inserted": 2617,
+      "updated": 0
+    },
+    "observations": {
+      "inserted": 66958,
+      "updated": 0
+    }
+  },
+  "repeat_changes": {
+    "patients": {
+      "inserted": 0,
+      "updated": 0
+    },
+    "encounters": {
+      "inserted": 0,
+      "updated": 0
+    },
+    "conditions": {
+      "inserted": 0,
+      "updated": 0
+    },
+    "observations": {
+      "inserted": 0,
+      "updated": 0
+    }
+  },
+  "aggregate_counts": {
+    "patients": 23,
+    "encounters": 4175,
+    "conditions": 2617,
+    "observations": 66958
+  },
+  "research_status": "insufficient_data",
+  "research_audit": {
+    "encounters_total": 4175,
+    "excluded_non_inpatient": 4132,
+    "inpatient_records": 43,
+    "patients_total": 23,
+    "episodes_total": 41,
+    "not_selected_after_index": 23,
+    "patients_without_inpatient_before_end": 9,
+    "patients_without_eligible_index": 12,
+    "excluded_under_18": 7,
+    "merged_encounters": 2,
+    "patients_with_no_eligible_episode": 3,
+    "excluded_at_or_after_observation_end": 0,
+    "excluded_missing_stop": 0,
+    "excluded_config_age": 0,
+    "excluded_index_window": 0,
+    "excluded_incomplete_followup": 0,
+    "excluded_death_by_horizon": 0,
+    "eligible_patients": 11,
+    "positive_outcomes": 0
+  },
+  "limitations": "Single-host measurement, no production SLA, concurrency or scaling claim. Peak RSS is whole-process high-water mark."
+}

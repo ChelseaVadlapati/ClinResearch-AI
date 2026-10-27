@@ -12,7 +12,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-clinresearch}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Generate .env using scripts/init_env.py}
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -22,7 +22,7 @@ services:
       retries: 30
   ingest:
     <<: *app
-    command: ["clinresearch", "ingest", "/app/tests/fixtures/synthea", "--report", "/app/reports/demo.json"]
+    command: ["clinresearch", "ingest", "/app/tests/fixtures/synthea", "--report", "${INGEST_REPORT_PATH:-/app/reports/demo.json}"]
     volumes:
       - ./reports:/app/reports
     depends_on:
@@ -30,10 +30,14 @@ services:
         condition: service_healthy
   api:
     <<: *app
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-clinresearch}:${POSTGRES_PASSWORD:?Generate .env using scripts/init_env.py}@db:5432/${POSTGRES_DB:-clinresearch}
+      RESEARCH_REPORT_PATH: ${RESEARCH_REPORT_PATH:-/app/reports/research/report.json}
+      NLP_REPORT_PATH: ${NLP_REPORT_PATH:-/app/reports/nlp/report.json}
     volumes:
       - ./reports:/app/reports:ro
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${API_PORT:-8000}:8000"
     depends_on:
       ingest:
         condition: service_completed_successfully
@@ -52,7 +56,7 @@ services:
       STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
     command: ["streamlit", "run", "src/clinresearch/dashboard/app.py", "--server.address=0.0.0.0", "--server.port=8501"]
     ports:
-      - "127.0.0.1:8501:8501"
+      - "127.0.0.1:${DASHBOARD_PORT:-8501}:8501"
     depends_on:
       api:
         condition: service_healthy

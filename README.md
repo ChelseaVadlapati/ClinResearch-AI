@@ -11,6 +11,93 @@ not a University of Florida product or an endorsed clinical system. An optional
 research workflow evaluates a fixed readmission baseline on synthetic records;
 its scores do not establish clinical prediction performance.
 
+## One-command synthetic demo
+
+With Docker Compose v2 and Python 3.11+ installed, start Docker Desktop/Engine.
+For a new checkout after the portfolio integration PR is merged:
+
+```bash
+git clone https://github.com/ChelseaVadlapati/ClinResearch-AI.git
+cd ClinResearch-AI
+git switch main
+scripts/demo.sh
+```
+
+For an existing checkout, run `git status` first and preserve any local changes,
+then `git switch main` and `git pull --ff-only origin main` before running the
+script. Do not repeat `cd ClinResearch-AI` if already in that directory.
+While the integration PR is under review, use `integration/portfolio-main` instead
+of `main`; merging earlier stacked PRs into feature branches did not update main.
+
+The default dashboard intentionally loads **3 fictional patients**, with 3
+encounters, 3 conditions and 3 observations. The larger Synthea verification
+exports are separate from this fixture and are not automatically loaded. Their
+committed benchmark reports are evidence, not bundled patient populations.
+
+Open the printed dashboard URL (default port **18501**; API **18000**). The script
+uses a separate Compose project, hash-locked dependencies and fresh report paths.
+It does not rebuild an application image, delete volumes, overwrite `.env`, or
+replace earlier research/NLP artifacts. The lightweight demo runs rules/TF-IDF;
+the optional transformer is explicitly `not_run` until you run that experiment.
+If a certificate proxy is required, set `DEMO_CA_BUNDLE=/path/to/trusted-bundle.pem`.
+See [operations and recovery](docs/security-and-operations.md).
+
+### Verified portfolio capabilities
+
+| Capability | Evidence |
+| --- | --- |
+| Synthetic CSV and supported FHIR R4 integration | Mapping, deterministic fixtures, reference/duplicate/idempotency tests |
+| PostgreSQL + SQLite and additive Alembic migrations | Migration-preservation and rollback/recovery tests |
+| Versioned index cohorts and temporal logistic workflow | Saved configuration/hash, flow and feature dictionary; insufficient-data guardrails |
+| Separate CPU transformer NLP experiment | Pinned model/asset hashes, fixed synthetic split, computed per-class metrics and error report |
+| Interactive aggregate dashboard and downloads | Backend-filter tests, real HTTP/Streamlit checks, desktop/mobile screenshots |
+| Reproducibility and performance | Hash locks, one-command demo, CI and [measured benchmark evidence](docs/performance.md) |
+
+No sufficiently powered readmission model, independently clinically reviewed NLP
+benchmark, production PHI deployment or clinical validation is claimed. See the
+[five-minute interview demonstration](docs/interview-demo.md) and
+[milestone verification report](docs/verification.md).
+
+## Interactive research exploration
+
+The dashboard's labeled filters call `GET /cohort/explore` with age, gender and
+matching encounter criteria. They select patients; plots then summarize those
+patients' **full recorded history**. Ingestion audit remains database-wide. Clear
+filters to return to the complete synthetic demo. Empty selections display an
+explicit empty state. Aggregate CSV/JSON downloads contain no patient rows.
+
+Saved study configuration, outcome/feature distributions and calibration (only
+when available) are separate from exploration filters. Reports do not silently
+retrain or change with filters. Set `RESEARCH_REPORT_PATH` and `NLP_REPORT_PATH`
+on the API to point to actual saved runs. The NLP endpoint omits local error text
+and identifiers; it never substitutes the committed example results for a run.
+
+Source metadata identifies the latest batch and import timestamp, not guaranteed
+provenance for every earlier upsert. See [dashboard semantics](docs/dashboard.md).
+
+![Current synthetic research dashboard](docs/images/portfolio-dashboard.png)
+
+## Experimental NLP (separate from the clinical-style dashboard)
+
+A fixed synthetic assertion benchmark compares the preserved rules, a CPU TF-IDF
+baseline and an optional frozen MiniLM transformer. It reports computed precision,
+recall, F1 and errors on a fixed held-out split. The annotations are assistant-authored
+and have no independent clinical review: these results are not clinical NLP accuracy.
+See [NLP methods, measured results, licensing and commands](docs/nlp-evaluation.md).
+
+## Versioned research runs
+
+```bash
+clinresearch analyze --observation-end 2025-01-01 --split-date 2024-01-01 \
+  --config configs/adult-return-v1.json --output reports/research-config-v1
+```
+
+Choose a fresh output directory. The saved configuration/hash, cohort flow,
+class counts and feature distributions make runs inspectable even when the
+model status is `insufficient_data`. The supplied configuration tightens sample
+requirements; it is not a power analysis. Read the [model card](docs/model-card.md),
+[data dictionary](docs/data-dictionary.md), and [study protocol](docs/study-protocol.md).
+
 ## Synthetic FHIR R4 imports
 
 FHIR resources and Bundles can feed the existing aggregate APIs and dashboard.
@@ -34,7 +121,7 @@ synthetic provenance; no real patient data may be used in the public demo.
 
 ```mermaid
 flowchart LR
-    S[Synthetic Synthea CSVs] --> V[Validation and rejection audit]
+    S[Synthetic Synthea CSV and FHIR R4] --> V[Validation and rejection audit]
     V --> D[(PostgreSQL)]
     D --> A[Aggregate FastAPI endpoints]
     A --> U[Streamlit dashboard]
@@ -48,6 +135,9 @@ flowchart LR
     M --> R
     I --> R
     R --> A
+    B[Separate labeled synthetic NLP benchmark] --> F[Rules, TF-IDF and optional frozen MiniLM]
+    F --> Q[Validated aggregate NLP report]
+    Q --> A
 ```
 
 The API exposes aggregates only. Notes and row-level research artifacts stay in
@@ -115,7 +205,10 @@ Regenerate it using the analysis command above; each run also emits a flow CSV.
    See [research workflow and limitations](docs/research.md) for commands,
    eligibility rules, features, and evaluation definitions. The three-patient
    fixture is too small for model evaluation and reports insufficient data.
-3. **Not yet specified.**
+3. **Portfolio extensions:** supported FHIR R4 ingestion, versioned cohorts,
+   separate frozen-transformer NLP, interactive cohort reporting, additive migrations,
+   recovery tests and measured performance. The [roadmap](docs/roadmap.md) distinguishes
+   implemented scope from remaining scientific and technical limitations.
 
 ## Quick demo with Docker Compose
 
@@ -152,8 +245,6 @@ numbers displayed in the dashboard are computed from the database.
 docker compose run --rm ingest
 # Stop services; retain demo data for next use.
 docker compose down
-# Optional destructive reset of this demo database only:
-docker compose down -v
 ```
 
 Use `.env.example` if configuring credentials manually. Keep passwords out of

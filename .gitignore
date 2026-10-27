@@ -12,3 +12,6 @@ reports/
 *.db
 .coverage
 htmlcov/
+.venv-nlp/
+build/
+dist/

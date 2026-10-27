@@ -55,13 +55,19 @@ jobs:
         run: |
           docker compose exec -T dashboard python -c 'import os, requests; r = requests.get(os.environ["API_BASE_URL"] + "/cohort/summary", timeout=10); r.raise_for_status(); assert r.json()["counts"]["patients"] == 3'
       - name: Existing dashboard smoke checks
-        run: python scripts/smoke_demo.py
+        run: |
+          python scripts/smoke_demo.py
+          python scripts/smoke_explore.py
       - name: Generate a new fixture research artifact
         run: |
           docker compose run --rm --no-deps ingest python -m clinresearch.cli analyze \
             --observation-end 2025-01-01 --split-date 2024-01-01 \
             --output /app/reports/research
           python scripts/smoke_research.py
+          docker compose run --rm --no-deps ingest python -m clinresearch.cli analyze \
+            --observation-end 2025-01-01 --split-date 2024-01-01 \
+            --config /app/configs/adult-return-v1.json --output /app/reports/research-config
+          python -c 'import json; r=json.load(open("reports/research-config/report.json")); assert r["evaluation"]["status"] == "insufficient_data"; assert r["study_config"]["min_partition_patients"] == 100'
       - name: Import FHIR without mixing populations
         run: |
           docker compose run --rm --no-deps -e DATABASE_URL=sqlite:////app/reports/fhir-ci.db ingest \
@@ -71,6 +77,8 @@ jobs:
             python -m clinresearch.cli ingest-fhir tests/fixtures/fhir/bundle.json \
             --dataset fictional-v1 --synthetic-only --report /app/reports/fhir-repeat.json
           python -c 'import json; r=json.load(open("reports/fhir-repeat.json")); assert all(v == {"inserted": 0, "updated": 0} for v in r["changes"].values())'
+      - name: One-command demo without rebuilding or deleting data
+        run: COMPOSE_PROJECT_NAME=clinresearch-onecommand scripts/demo.sh
       - name: Preserve smoke evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -80,3 +88,30 @@ jobs:
       - name: Container diagnostics
         if: always()
         run: docker compose ps -a && docker compose logs --tail=40
+
+  nlp-cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-nlp.lock
+      - run: python -m pip install --require-hashes -r requirements-nlp.lock
+      - run: python -m pip install --no-deps -e .
+      - uses: actions/cache@v4
+        with:
+          path: data/models/minilm-v1
+          key: minilm-${{ hashFiles('benchmarks/nlp/model-lock.json') }}
+      - name: Evaluate pinned frozen encoder on synthetic holdout
+        run: |
+          python -m clinresearch.nlp.benchmark --output reports/nlp \
+            --model-lock benchmarks/nlp/model-lock.json \
+            --cache data/models/minilm-v1 --download-model
+          python -c 'import json; r=json.load(open("reports/nlp/report.json")); assert r["transformer_status"] == "evaluated"; assert r["test_examples"] == 24'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-nlp-evaluation
+          path: reports/nlp/report.json
