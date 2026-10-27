@@ -42,3 +42,19 @@ smoke results and hosted Actions URL in `docs/verification.md` before starting t
 next milestone. Review changes and preserve fixtures, reports and volumes. A failed
 or blocked check stays explicitly failed/blocked, not claimed as passing. PR bodies
 summarize exact reproduction commands and unresolved technical/research limits.
+
+
+## Delivered milestone status (2026-10-27)
+
+| Milestone | Review branch / PR | Verified scope and remaining limits |
+| --- | --- | --- |
+| 1 | feat/fhir-r4-integration / PR #2 | Supported R4 subset, additive migrations, audits and reference/idempotency tests. Component-only observations and other documented variants remain unsupported. |
+| 2 | feat/versioned-research-cohorts / PR #3 | Versioned adult cohorts, flow, dictionary/model card and descriptive uncertainty. Outcome scarcity prevents meaningful second-model comparison or clinical evaluation. |
+| 3 | feat/experimental-nlp / PR #4 | Pinned CPU transformer, TF-IDF/rule comparison and measured fixed-split synthetic results. No independently human-reviewed clinical annotations or real-note accuracy claim. |
+| 4 | feat/research-dashboard / PR #5 | Backend filters, aggregate downloads, provenance, safe NLP summaries, responsive UI checks. Source-mounted metadata failure was fixed and reverified in hosted CI. |
+| 5 | feat/reproducibility-portfolio | Config/logging/recovery hardening, one-command demo, measured 23-patient/73,773-record benchmark, operations/interview docs. No production SLA, PHI deployment, HIPAA or full FHIR conformance claim. |
+
+All PRs are intentionally reviewable and stacked. Review/merge order is 2 → 3 → 4
+→ 5 → final portfolio PR; do not automatically merge. Each later branch contains
+its predecessors; retarget after earlier merges as needed. Detailed local counts,
+actual commands, hosted results and failure corrections are in verification.md.
