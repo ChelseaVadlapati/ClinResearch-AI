@@ -1,0 +1,129 @@
+{
+  "dataset": "Local Synthea run requesting 100 patients",
+  "synthetic_only": true,
+  "clinically_validated": false,
+  "import_status": "committed",
+  "tables": {
+    "patients": {
+      "input": 109,
+      "accepted": 109,
+      "rejected": 0
+    },
+    "encounters": {
+      "input": 17559,
+      "accepted": 17551,
+      "rejected": 8
+    },
+    "conditions": {
+      "input": 9678,
+      "accepted": 9678,
+      "rejected": 0
+    },
+    "observations": {
+      "input": 215485,
+      "accepted": 215435,
+      "rejected": 50
+    }
+  },
+  "rejection_counts": [
+    {
+      "table": "encounters",
+      "reason": "event follows patient death",
+      "count": 8
+    },
+    {
+      "table": "observations",
+      "reason": "duplicate normalized row",
+      "count": 24
+    },
+    {
+      "table": "observations",
+      "reason": "event follows patient death",
+      "count": 26
+    }
+  ],
+  "cohort_audit": {
+    "encounters_total": 17551,
+    "excluded_non_inpatient": 17350,
+    "inpatient_records": 201,
+    "patients_total": 109,
+    "episodes_total": 190,
+    "patients_without_inpatient_before_end": 50,
+    "patients_without_eligible_index": 63,
+    "not_selected_after_index": 105,
+    "excluded_under_18": 38,
+    "patients_with_no_eligible_episode": 13,
+    "merged_encounters": 11,
+    "excluded_death_by_horizon": 1,
+    "excluded_at_or_after_observation_end": 0,
+    "excluded_missing_stop": 0,
+    "excluded_config_age": 0,
+    "excluded_index_window": 0,
+    "excluded_incomplete_followup": 0,
+    "eligible_patients": 46,
+    "positive_outcomes": 0
+  },
+  "evaluation": {
+    "status": "insufficient_data",
+    "features": [
+      "age",
+      "length_of_stay_days",
+      "prior_inpatient_365d",
+      "known_condition_count"
+    ],
+    "split_date": "2024-01-01",
+    "split": {
+      "train": {
+        "patients": 44,
+        "positives": 0,
+        "discharge_min": "1955-12-29T04:40:18+00:00",
+        "discharge_max": "2021-10-20T18:46:51+00:00"
+      },
+      "test": {
+        "patients": 2,
+        "positives": 0,
+        "discharge_min": "2024-03-16T11:26:45+00:00",
+        "discharge_max": "2024-03-20T13:14:01+00:00"
+      },
+      "purged": {
+        "patients": 0,
+        "positives": 0,
+        "discharge_min": null,
+        "discharge_max": null
+      }
+    },
+    "limitations": [
+      "Synthetic data and simulated notes cannot establish clinical validity or real-world utility.",
+      "Outcome is any observed inpatient return within 30 days, not verified unplanned readmission.",
+      "Export end assumes complete follow-up; loss to follow-up and outside care are unknown.",
+      "Death by the horizon is excluded; competing-risk modeling is not implemented.",
+      "One earliest eligible adult discharge per patient changes the target population.",
+      "Conditions use onset dates, not entry timestamps; retrospective recording remains a risk.",
+      "Fixed baseline and threshold: no holdout tuning, external validation, or fairness claims.",
+      "Bootstrap intervals measure sampling variability only, not synthetic-to-real generalization.",
+      "Template checks are software tests, not validation on independently annotated notes."
+    ],
+    "threshold": 0.5,
+    "method": "StandardScaler + LogisticRegression(C=1, max_iter=2000, random_state=42)",
+    "sklearn_version": "1.7.2",
+    "reason": "Each partition needs >=100 patients and >=20 outcomes of each class."
+  },
+  "study_config": {
+    "version": 1,
+    "name": "adult-inpatient-return-v1",
+    "minimum_age": 18,
+    "maximum_age": null,
+    "index_start": null,
+    "index_end_exclusive": null,
+    "outcome_days": 30,
+    "lookback_days": 365,
+    "min_partition_patients": 100,
+    "min_partition_class_count": 20,
+    "seed": 42
+  },
+  "limitations": [
+    "Aggregate summary of a local run; raw data is not included.",
+    "No predictive model performance was established.",
+    "Synthetic data cannot establish clinical validity."
+  ]
+}
