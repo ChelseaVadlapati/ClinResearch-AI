@@ -7,7 +7,7 @@ from datetime import date
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from sqlalchemy import Engine, select
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -15,6 +15,7 @@ from clinresearch.api.schemas import CohortSummary, CommonCondition, Health, Mon
 from clinresearch.database.models import Base
 from clinresearch.database.session import make_engine
 from clinresearch.research.report import validate_report
+from clinresearch.transformations.explore import aggregate_csv, explore
 from clinresearch.transformations.summaries import (
     cohort_summary,
     common_conditions,
@@ -64,6 +65,38 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     def conditions(limit: int = Query(default=10, ge=1, le=100)) -> list[dict]:
         return common_conditions(application.state.engine, limit)
 
+    @application.get("/cohort/explore")
+    def explore_cohort(
+        as_of: date | None = None,
+        minimum_age: int | None = Query(None, ge=0, le=120),
+        maximum_age: int | None = Query(None, ge=0, le=120),
+        gender: str | None = Query(None, max_length=30),
+        encounter_class: str | None = Query(None, max_length=50),
+        encounter_start: date | None = None,
+        encounter_end: date | None = None,
+        download: bool = False,
+    ):
+        try:
+            result = explore(
+                application.state.engine,
+                as_of or date.today(),
+                minimum_age,
+                maximum_age,
+                gender,
+                encounter_class,
+                encounter_start,
+                encounter_end,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        if download:
+            return Response(
+                aggregate_csv(result),
+                media_type="text/csv",
+                headers={"Content-Disposition": 'attachment; filename="cohort-aggregate.csv"'},
+            )
+        return result
+
     @application.get("/research/report")
     def research_report() -> dict:
         path = Path(os.environ.get("RESEARCH_REPORT_PATH", "reports/research/report.json"))
@@ -75,6 +108,21 @@ def create_app(engine: Engine | None = None) -> FastAPI:
         except (OSError, ValueError, KeyError, TypeError) as exc:
             raise HTTPException(
                 status_code=503, detail="Research report unavailable or invalid"
+            ) from exc
+        return {"status": "available", "report": report}
+
+    @application.get("/nlp/report")
+    def nlp_report() -> dict:
+        from clinresearch.nlp.report import public_report
+
+        path = Path(os.environ.get("NLP_REPORT_PATH", "reports/nlp/report.json"))
+        try:
+            report = public_report(json.loads(path.read_text(encoding="utf-8")))
+        except FileNotFoundError:
+            return {"status": "not_run", "synthetic_only": True}
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise HTTPException(
+                status_code=503, detail="NLP report unavailable or invalid"
             ) from exc
         return {"status": "available", "report": report}
 
