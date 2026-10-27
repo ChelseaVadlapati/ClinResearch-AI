@@ -10,19 +10,28 @@ import pandas as pd
 from sqlalchemy import Engine
 
 from clinresearch.research.cohort import FEATURES, build_cohort
+from clinresearch.research.config import StudyConfig
+from clinresearch.research.descriptive import describe
 from clinresearch.research.evaluate import evaluate
 from clinresearch.research.notes import simulate_note
 from clinresearch.research.report import validate_report
 
 
-def run_analysis(engine: Engine, observation_end: date, split_date: date, output: Path) -> dict:
+def run_analysis(
+    engine: Engine,
+    observation_end: date,
+    split_date: date,
+    output: Path,
+    config: StudyConfig | None = None,
+) -> dict:
     """Write a new artifact directory, refusing to overwrite previous research runs."""
+    config = config or StudyConfig()
     if split_date >= observation_end:
         raise ValueError("split-date must precede observation-end")
     if output.exists():
         raise FileExistsError(f"Output directory already exists: {output}")
-    rows, audit = build_cohort(engine, observation_end)
-    evaluation = evaluate(rows, split_date)
+    rows, audit = build_cohort(engine, observation_end, config)
+    evaluation = evaluate(rows, split_date, config)
     notes = [simulate_note(row) for row in rows]
     concepts = Counter(
         mention["concept"]
@@ -33,6 +42,9 @@ def run_analysis(engine: Engine, observation_end: date, split_date: date, output
     fingerprint = hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest()
     report = {
         "schema_version": 1,
+        "study_config": config.model_dump(),
+        "config_sha256": config.fingerprint(),
+        "descriptive": describe(rows),
         "protocol_version": "1.1",
         "cohort_flow": cohort_flow(audit),
         "synthetic_only": True,
@@ -49,6 +61,7 @@ def run_analysis(engine: Engine, observation_end: date, split_date: date, output
     }
     report = validate_report(report)
     output.mkdir(parents=True, exist_ok=False)
+    (output / "study_config.json").write_text(config.model_dump_json(indent=2) + "\n")
     pd.DataFrame(report["cohort_flow"]).to_csv(output / "cohort_flow.csv", index=False)
     pd.DataFrame(
         rows,
@@ -81,6 +94,11 @@ def cohort_flow(audit: dict) -> list[dict]:
         "episode": [
             "excluded_missing_stop",
             "excluded_under_18",
+            *(
+                ["excluded_config_age", "excluded_index_window"]
+                if "excluded_config_age" in audit
+                else []
+            ),
             "excluded_incomplete_followup",
             "excluded_death_by_horizon",
             "not_selected_after_index",

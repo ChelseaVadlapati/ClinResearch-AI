@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "name": "adult-inpatient-return-v1",
+  "minimum_age": 18,
+  "maximum_age": null,
+  "index_start": null,
+  "index_end_exclusive": null,
+  "outcome_days": 30,
+  "lookback_days": 365,
+  "min_partition_patients": 100,
+  "min_partition_class_count": 20,
+  "seed": 42
+}
