@@ -202,3 +202,48 @@ calculation. No-config behavior retains historical 10/2 software guardrails.
 Descriptive Wilson intervals are withheld below 20 patients or 2 of either class.
 Clinical validity, outside-care completeness and recording-time availability remain
 unestablished. Hosted CI is checked in the milestone PR before proceeding.
+
+Milestone 2 hosted gate: [Actions run 40537160134](https://github.com/ChelseaVadlapati/ClinResearch-AI/actions/runs/40537160134)
+passed all Python/PostgreSQL and Compose jobs on `3a10e38` before NLP work began.
+
+## Portfolio milestone 3 — experimental CPU NLP (2026-10-27)
+
+Preserved the deterministic extractor and created a separate 48-train/24-test
+synthetic assertion benchmark. The assistant authored labels independently of the
+note template/extractor; there is no independent human/clinical review. Pinned
+Apache-2.0-declared MiniLM revision and asset SHA-256 values, with optional CPU
+ONNX/tokenizer dependencies constrained to the application's base lock versions.
+No NLP information is added to inpatient-return features.
+
+Python 3.12 SQLite/PostgreSQL suite: **152 passed, 1 skipped**. Ruff lint/format
+passed; five NLP-focused regressions also rerun after input-contract hardening.
+Compose API/dashboard/research smoke and baseline-only NLP command passed.
+Actual frozen MiniLM inference ran on CPU with fixed logistic head and produced
+the committed `benchmarks/nlp/verified-results-v1.json`; offline rerun was
+byte-identical. The first attempt could not write to root-owned Compose reports;
+it was rerun successfully to a fresh writable data directory. No missing run was
+substituted with fabricated predictions.
+
+Exact transformer reproduction and optional environment commands are in
+`docs/nlp-evaluation.md`. Actual holdout macro F1: rules 0.5984848485, TF-IDF
+0.7892857143, MiniLM 0.7641025641. These are tiny synthetic software-benchmark
+results, not clinical accuracy, model superiority or real-world validation.
+All 10 rule errors and 5 errors for each learned classifier are retained. Exact
+rule spans matched 24/24 controlled-vocabulary snippets, not general clinical NLP.
+
+```bash
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+set -a; source .env; set +a
+TEST_DATABASE_URL="$DATABASE_URL" .venv/bin/pytest -q
+.venv-nlp/bin/python -m clinresearch.nlp.benchmark --output data/nlp-verification-v1 \
+  --model-lock benchmarks/nlp/model-lock.json --cache data/models/minilm-v1 --download-model
+.venv-nlp/bin/python -m clinresearch.nlp.benchmark --output data/nlp-verification-repeat \
+  --model-lock benchmarks/nlp/model-lock.json --cache data/models/minilm-v1
+cmp data/nlp-verification-v1/report.json data/nlp-verification-repeat/report.json
+python scripts/smoke_demo.py
+python scripts/smoke_research.py
+```
+
+Use fresh output paths. Hosted CI includes a separate pinned CPU NLP job and
+archives its computed report, alongside existing lint/tests/Compose checks.
