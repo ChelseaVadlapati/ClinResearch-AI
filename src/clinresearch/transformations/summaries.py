@@ -1,18 +1,22 @@
 """Descriptive summaries of loaded synthetic records; no clinical inference."""
 
+from contextlib import nullcontext
 from datetime import date
 
 import pandas as pd
-from sqlalchemy import Engine, func, select
+from sqlalchemy import Connection, Engine, func, select
 from sqlalchemy.orm import Session
 
 from clinresearch.database.models import Condition, Encounter, ImportRun, Observation, Patient
 
 
-def cohort_summary(engine: Engine, as_of: date) -> dict:
+def cohort_summary(engine: Engine | Connection, as_of: date, selection=None) -> dict:
     """Summarize all loaded patients; as_of affects ages only, not cohort membership."""
-    with engine.connect() as connection:
-        patients = pd.read_sql(select(Patient), connection)
+    patient_query = select(Patient)
+    if selection is not None:
+        patient_query = patient_query.where(Patient.id.in_(selection))
+    with nullcontext(engine) if isinstance(engine, Connection) else engine.connect() as connection:
+        patients = pd.read_sql(patient_query, connection)
     ages = []
     for row in patients.itertuples():
         end = min(row.death_date, as_of) if row.death_date else as_of
@@ -28,7 +32,15 @@ def cohort_summary(engine: Engine, as_of: date) -> dict:
     }
     with Session(engine) as session:
         counts = {
-            model.__tablename__: session.scalar(select(func.count()).select_from(model))
+            model.__tablename__: session.scalar(
+                select(func.count())
+                .select_from(model)
+                .where(
+                    (model.id if model is Patient else model.patient_id).in_(selection)
+                    if selection is not None
+                    else True
+                )
+            )
             for model in (Patient, Encounter, Condition, Observation)
         }
         latest = session.scalar(
@@ -58,10 +70,13 @@ def cohort_summary(engine: Engine, as_of: date) -> dict:
     }
 
 
-def monthly_encounters(engine: Engine) -> list[dict]:
+def monthly_encounters(engine: Engine | Connection, selection=None) -> list[dict]:
     """Count encounter starts in UTC calendar months, including zero-count gaps."""
-    with engine.connect() as connection:
-        frame = pd.read_sql(select(Encounter.start), connection)
+    query = select(Encounter.start)
+    if selection is not None:
+        query = query.where(Encounter.patient_id.in_(selection))
+    with nullcontext(engine) if isinstance(engine, Connection) else engine.connect() as connection:
+        frame = pd.read_sql(query, connection)
     if frame.empty:
         return []
     month = pd.to_datetime(frame["start"], utc=True).dt.strftime("%Y-%m")
@@ -70,7 +85,7 @@ def monthly_encounters(engine: Engine) -> list[dict]:
     return [{"month": str(m), "encounters": int(counts.get(str(m), 0))} for m in months]
 
 
-def common_conditions(engine: Engine, limit: int = 10) -> list[dict]:
+def common_conditions(engine: Engine | Connection, limit: int = 10, selection=None) -> list[dict]:
     """Rank condition occurrences, also counting distinct affected patients.
 
     A patient may contribute multiple occurrences; neither count is prevalence.
@@ -89,5 +104,7 @@ def common_conditions(engine: Engine, limit: int = 10) -> list[dict]:
         .order_by(func.count().desc(), Condition.system, Condition.code)
         .limit(limit)
     )
-    with engine.connect() as connection:
+    if selection is not None:
+        query = query.where(Condition.patient_id.in_(selection))
+    with nullcontext(engine) if isinstance(engine, Connection) else engine.connect() as connection:
         return [dict(row) for row in connection.execute(query).mappings()]
