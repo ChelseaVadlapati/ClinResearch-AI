@@ -84,3 +84,30 @@ jobs:
       - name: Container diagnostics
         if: always()
         run: docker compose ps -a && docker compose logs --tail=40
+
+  nlp-cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-nlp.lock
+      - run: python -m pip install --require-hashes -r requirements-nlp.lock
+      - run: python -m pip install --no-deps -e .
+      - uses: actions/cache@v4
+        with:
+          path: data/models/minilm-v1
+          key: minilm-${{ hashFiles('benchmarks/nlp/model-lock.json') }}
+      - name: Evaluate pinned frozen encoder on synthetic holdout
+        run: |
+          python -m clinresearch.nlp.benchmark --output reports/nlp \
+            --model-lock benchmarks/nlp/model-lock.json \
+            --cache data/models/minilm-v1 --download-model
+          python -c 'import json; r=json.load(open("reports/nlp/report.json")); assert r["transformer_status"] == "evaluated"; assert r["test_examples"] == 24'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-nlp-evaluation
+          path: reports/nlp/report.json

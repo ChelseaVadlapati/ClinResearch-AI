@@ -11,5 +11,6 @@ RUN --mount=type=secret,id=custom_ca \
     pip install --no-deps .
 COPY tests/fixtures ./tests/fixtures
 COPY configs ./configs
+COPY benchmarks/nlp ./benchmarks/nlp
 RUN mkdir -p /app/reports
 CMD ["uvicorn", "clinresearch.api.app:app", "--host", "0.0.0.0", "--port", "8000"]

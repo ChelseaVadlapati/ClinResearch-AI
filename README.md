@@ -11,6 +11,14 @@ not a University of Florida product or an endorsed clinical system. An optional
 research workflow evaluates a fixed readmission baseline on synthetic records;
 its scores do not establish clinical prediction performance.
 
+## Experimental NLP (separate from the clinical-style dashboard)
+
+A fixed synthetic assertion benchmark compares the preserved rules, a CPU TF-IDF
+baseline and an optional frozen MiniLM transformer. It reports computed precision,
+recall, F1 and errors on a fixed held-out split. The annotations are assistant-authored
+and have no independent clinical review: these results are not clinical NLP accuracy.
+See [NLP methods, measured results, licensing and commands](docs/nlp-evaluation.md).
+
 ## Versioned research runs
 
 ```bash

@@ -1,0 +1,657 @@
+{
+  "schema_version": 1,
+  "dataset_version": "synthetic-assertions-v1",
+  "synthetic_only": true,
+  "license": "CC0-1.0",
+  "provenance": "Individually authored and labeled synthetic software benchmark by the coding assistant, independent of simulate_note/extract_concepts. No independent human or clinical annotation review. Fixed split before evaluation.",
+  "examples": [
+    {
+      "id": "train-present-0",
+      "split": "train",
+      "text": "Hypertension is treated at this visit.",
+      "concept": "hypertension",
+      "start": 0,
+      "end": 12,
+      "assertion": "present"
+    },
+    {
+      "id": "train-present-1",
+      "split": "train",
+      "text": "The patient has diabetes requiring ongoing monitoring.",
+      "concept": "diabetes",
+      "start": 16,
+      "end": 24,
+      "assertion": "present"
+    },
+    {
+      "id": "train-present-2",
+      "split": "train",
+      "text": "Asthma has persisted since adolescence.",
+      "concept": "asthma",
+      "start": 0,
+      "end": 6,
+      "assertion": "present"
+    },
+    {
+      "id": "train-present-3",
+      "split": "train",
+      "text": "COPD is documented in the current assessment.",
+      "concept": "copd",
+      "start": 0,
+      "end": 4,
+      "assertion": "present"
+    },
+    {
+      "id": "train-present-4",
+      "split": "train",
+      "text": "Recent testing confirmed heart failure.",
+      "concept": "heart_failure",
+      "start": 25,
+      "end": 38,
+      "assertion": "present"
+    },
+    {
+      "id": "train-present-5",
+      "split": "train",
+      "text": "Chronic kidney disease remains active.",
+      "concept": "kidney_disease",
+      "start": 0,
+      "end": 22,
+      "assertion": "present"
+    },
+    {
+      "id": "train-present-6",
+      "split": "train",
+      "text": "The established diagnosis is diabetes.",
+      "concept": "diabetes",
+      "start": 29,
+      "end": 37,
+      "assertion": "present"
+    },
+    {
+      "id": "train-present-7",
+      "split": "train",
+      "text": "Blood pressure treatment continues for hypertension.",
+      "concept": "hypertension",
+      "start": 39,
+      "end": 51,
+      "assertion": "present"
+    },
+    {
+      "id": "train-present-8",
+      "split": "train",
+      "text": "Today we reviewed inhaler use for asthma.",
+      "concept": "asthma",
+      "start": 34,
+      "end": 40,
+      "assertion": "present"
+    },
+    {
+      "id": "train-present-9",
+      "split": "train",
+      "text": "She receives follow-up for heart failure.",
+      "concept": "heart_failure",
+      "start": 27,
+      "end": 40,
+      "assertion": "present"
+    },
+    {
+      "id": "train-present-10",
+      "split": "train",
+      "text": "He lives with COPD and uses inhalers.",
+      "concept": "copd",
+      "start": 14,
+      "end": 18,
+      "assertion": "present"
+    },
+    {
+      "id": "train-present-11",
+      "split": "train",
+      "text": "The chart lists chronic kidney disease as a current diagnosis.",
+      "concept": "kidney_disease",
+      "start": 16,
+      "end": 38,
+      "assertion": "present"
+    },
+    {
+      "id": "train-negated-0",
+      "split": "train",
+      "text": "There is no evidence of diabetes.",
+      "concept": "diabetes",
+      "start": 24,
+      "end": 32,
+      "assertion": "negated"
+    },
+    {
+      "id": "train-negated-1",
+      "split": "train",
+      "text": "The patient denies asthma.",
+      "concept": "asthma",
+      "start": 19,
+      "end": 25,
+      "assertion": "negated"
+    },
+    {
+      "id": "train-negated-2",
+      "split": "train",
+      "text": "Hypertension has been excluded.",
+      "concept": "hypertension",
+      "start": 0,
+      "end": 12,
+      "assertion": "negated"
+    },
+    {
+      "id": "train-negated-3",
+      "split": "train",
+      "text": "Testing was negative for heart failure.",
+      "concept": "heart_failure",
+      "start": 25,
+      "end": 38,
+      "assertion": "negated"
+    },
+    {
+      "id": "train-negated-4",
+      "split": "train",
+      "text": "The assessment does not support COPD.",
+      "concept": "copd",
+      "start": 32,
+      "end": 36,
+      "assertion": "negated"
+    },
+    {
+      "id": "train-negated-5",
+      "split": "train",
+      "text": "No chronic kidney disease was identified.",
+      "concept": "kidney_disease",
+      "start": 3,
+      "end": 25,
+      "assertion": "negated"
+    },
+    {
+      "id": "train-negated-6",
+      "split": "train",
+      "text": "History is negative for asthma.",
+      "concept": "asthma",
+      "start": 24,
+      "end": 30,
+      "assertion": "negated"
+    },
+    {
+      "id": "train-negated-7",
+      "split": "train",
+      "text": "The patient is without hypertension.",
+      "concept": "hypertension",
+      "start": 23,
+      "end": 35,
+      "assertion": "negated"
+    },
+    {
+      "id": "train-negated-8",
+      "split": "train",
+      "text": "Diabetes was ruled out after testing.",
+      "concept": "diabetes",
+      "start": 0,
+      "end": 8,
+      "assertion": "negated"
+    },
+    {
+      "id": "train-negated-9",
+      "split": "train",
+      "text": "There are no signs of COPD.",
+      "concept": "copd",
+      "start": 22,
+      "end": 26,
+      "assertion": "negated"
+    },
+    {
+      "id": "train-negated-10",
+      "split": "train",
+      "text": "The patient does not have heart failure.",
+      "concept": "heart_failure",
+      "start": 26,
+      "end": 39,
+      "assertion": "negated"
+    },
+    {
+      "id": "train-negated-11",
+      "split": "train",
+      "text": "Evaluation excluded chronic kidney disease.",
+      "concept": "kidney_disease",
+      "start": 20,
+      "end": 42,
+      "assertion": "negated"
+    },
+    {
+      "id": "train-uncertain-0",
+      "split": "train",
+      "text": "Possible diabetes warrants further testing.",
+      "concept": "diabetes",
+      "start": 9,
+      "end": 17,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "train-uncertain-1",
+      "split": "train",
+      "text": "Asthma is suspected but not yet confirmed.",
+      "concept": "asthma",
+      "start": 0,
+      "end": 6,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "train-uncertain-2",
+      "split": "train",
+      "text": "Consider heart failure in the differential.",
+      "concept": "heart_failure",
+      "start": 9,
+      "end": 22,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "train-uncertain-3",
+      "split": "train",
+      "text": "Symptoms may reflect COPD.",
+      "concept": "copd",
+      "start": 21,
+      "end": 25,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "train-uncertain-4",
+      "split": "train",
+      "text": "We will investigate possible hypertension.",
+      "concept": "hypertension",
+      "start": 29,
+      "end": 41,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "train-uncertain-5",
+      "split": "train",
+      "text": "Chronic kidney disease cannot yet be confirmed.",
+      "concept": "kidney_disease",
+      "start": 0,
+      "end": 22,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "train-uncertain-6",
+      "split": "train",
+      "text": "Rule out asthma with pulmonary testing.",
+      "concept": "asthma",
+      "start": 9,
+      "end": 15,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "train-uncertain-7",
+      "split": "train",
+      "text": "The patient may have diabetes.",
+      "concept": "diabetes",
+      "start": 21,
+      "end": 29,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "train-uncertain-8",
+      "split": "train",
+      "text": "COPD remains a diagnostic possibility.",
+      "concept": "copd",
+      "start": 0,
+      "end": 4,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "train-uncertain-9",
+      "split": "train",
+      "text": "A working diagnosis of hypertension awaits confirmation.",
+      "concept": "hypertension",
+      "start": 23,
+      "end": 35,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "train-uncertain-10",
+      "split": "train",
+      "text": "Concern for heart failure prompted imaging.",
+      "concept": "heart_failure",
+      "start": 12,
+      "end": 25,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "train-uncertain-11",
+      "split": "train",
+      "text": "Suspected chronic kidney disease requires repeat laboratory work.",
+      "concept": "kidney_disease",
+      "start": 10,
+      "end": 32,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "train-family-0",
+      "split": "train",
+      "text": "The mother has diabetes.",
+      "concept": "diabetes",
+      "start": 15,
+      "end": 23,
+      "assertion": "family"
+    },
+    {
+      "id": "train-family-1",
+      "split": "train",
+      "text": "Family history includes asthma.",
+      "concept": "asthma",
+      "start": 24,
+      "end": 30,
+      "assertion": "family"
+    },
+    {
+      "id": "train-family-2",
+      "split": "train",
+      "text": "The father was treated for hypertension.",
+      "concept": "hypertension",
+      "start": 27,
+      "end": 39,
+      "assertion": "family"
+    },
+    {
+      "id": "train-family-3",
+      "split": "train",
+      "text": "A sibling has COPD.",
+      "concept": "copd",
+      "start": 14,
+      "end": 18,
+      "assertion": "family"
+    },
+    {
+      "id": "train-family-4",
+      "split": "train",
+      "text": "Her grandmother lived with heart failure.",
+      "concept": "heart_failure",
+      "start": 27,
+      "end": 40,
+      "assertion": "family"
+    },
+    {
+      "id": "train-family-5",
+      "split": "train",
+      "text": "His brother has chronic kidney disease.",
+      "concept": "kidney_disease",
+      "start": 16,
+      "end": 38,
+      "assertion": "family"
+    },
+    {
+      "id": "train-family-6",
+      "split": "train",
+      "text": "A maternal aunt has asthma.",
+      "concept": "asthma",
+      "start": 20,
+      "end": 26,
+      "assertion": "family"
+    },
+    {
+      "id": "train-family-7",
+      "split": "train",
+      "text": "Diabetes affects his sister.",
+      "concept": "diabetes",
+      "start": 0,
+      "end": 8,
+      "assertion": "family"
+    },
+    {
+      "id": "train-family-8",
+      "split": "train",
+      "text": "The family reports paternal hypertension.",
+      "concept": "hypertension",
+      "start": 28,
+      "end": 40,
+      "assertion": "family"
+    },
+    {
+      "id": "train-family-9",
+      "split": "train",
+      "text": "His mother receives treatment for heart failure.",
+      "concept": "heart_failure",
+      "start": 34,
+      "end": 47,
+      "assertion": "family"
+    },
+    {
+      "id": "train-family-10",
+      "split": "train",
+      "text": "COPD was diagnosed in her father.",
+      "concept": "copd",
+      "start": 0,
+      "end": 4,
+      "assertion": "family"
+    },
+    {
+      "id": "train-family-11",
+      "split": "train",
+      "text": "Chronic kidney disease occurred in the grandfather.",
+      "concept": "kidney_disease",
+      "start": 0,
+      "end": 22,
+      "assertion": "family"
+    },
+    {
+      "id": "test-present-0",
+      "split": "test",
+      "text": "Confirmed asthma is the reason for this follow-up.",
+      "concept": "asthma",
+      "start": 10,
+      "end": 16,
+      "assertion": "present"
+    },
+    {
+      "id": "test-present-1",
+      "split": "test",
+      "text": "Diabetes is stable on the current regimen.",
+      "concept": "diabetes",
+      "start": 0,
+      "end": 8,
+      "assertion": "present"
+    },
+    {
+      "id": "test-present-2",
+      "split": "test",
+      "text": "No chest pain today; established heart failure remains under treatment.",
+      "concept": "heart_failure",
+      "start": 33,
+      "end": 46,
+      "assertion": "present"
+    },
+    {
+      "id": "test-present-3",
+      "split": "test",
+      "text": "Previously documented COPD is still managed here.",
+      "concept": "copd",
+      "start": 22,
+      "end": 26,
+      "assertion": "present"
+    },
+    {
+      "id": "test-present-4",
+      "split": "test",
+      "text": "The patient, unlike her parents, has hypertension.",
+      "concept": "hypertension",
+      "start": 37,
+      "end": 49,
+      "assertion": "present"
+    },
+    {
+      "id": "test-present-5",
+      "split": "test",
+      "text": "Laboratory findings establish chronic kidney disease.",
+      "concept": "kidney_disease",
+      "start": 30,
+      "end": 52,
+      "assertion": "present"
+    },
+    {
+      "id": "test-negated-0",
+      "split": "test",
+      "text": "Pulmonary assessment ruled out asthma.",
+      "concept": "asthma",
+      "start": 31,
+      "end": 37,
+      "assertion": "negated"
+    },
+    {
+      "id": "test-negated-1",
+      "split": "test",
+      "text": "The clinician found no diabetes in this patient.",
+      "concept": "diabetes",
+      "start": 23,
+      "end": 31,
+      "assertion": "negated"
+    },
+    {
+      "id": "test-negated-2",
+      "split": "test",
+      "text": "Heart failure is absent on the completed evaluation.",
+      "concept": "heart_failure",
+      "start": 0,
+      "end": 13,
+      "assertion": "negated"
+    },
+    {
+      "id": "test-negated-3",
+      "split": "test",
+      "text": "He denies any diagnosis of COPD.",
+      "concept": "copd",
+      "start": 27,
+      "end": 31,
+      "assertion": "negated"
+    },
+    {
+      "id": "test-negated-4",
+      "split": "test",
+      "text": "Repeat measurements did not establish hypertension.",
+      "concept": "hypertension",
+      "start": 38,
+      "end": 50,
+      "assertion": "negated"
+    },
+    {
+      "id": "test-negated-5",
+      "split": "test",
+      "text": "There is no current evidence supporting chronic kidney disease.",
+      "concept": "kidney_disease",
+      "start": 40,
+      "end": 62,
+      "assertion": "negated"
+    },
+    {
+      "id": "test-uncertain-0",
+      "split": "test",
+      "text": "Could these symptoms represent asthma?",
+      "concept": "asthma",
+      "start": 31,
+      "end": 37,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "test-uncertain-1",
+      "split": "test",
+      "text": "Diabetes is a possibility pending another test.",
+      "concept": "diabetes",
+      "start": 0,
+      "end": 8,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "test-uncertain-2",
+      "split": "test",
+      "text": "The differential still includes heart failure.",
+      "concept": "heart_failure",
+      "start": 32,
+      "end": 45,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "test-uncertain-3",
+      "split": "test",
+      "text": "Further investigation is needed to rule out COPD.",
+      "concept": "copd",
+      "start": 44,
+      "end": 48,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "test-uncertain-4",
+      "split": "test",
+      "text": "Hypertension may explain these readings.",
+      "concept": "hypertension",
+      "start": 0,
+      "end": 12,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "test-uncertain-5",
+      "split": "test",
+      "text": "Possible chronic kidney disease is being investigated.",
+      "concept": "kidney_disease",
+      "start": 9,
+      "end": 31,
+      "assertion": "uncertain"
+    },
+    {
+      "id": "test-family-0",
+      "split": "test",
+      "text": "The sister uses an inhaler for asthma.",
+      "concept": "asthma",
+      "start": 31,
+      "end": 37,
+      "assertion": "family"
+    },
+    {
+      "id": "test-family-1",
+      "split": "test",
+      "text": "Diabetes was recorded for the maternal grandfather.",
+      "concept": "diabetes",
+      "start": 0,
+      "end": 8,
+      "assertion": "family"
+    },
+    {
+      "id": "test-family-2",
+      "split": "test",
+      "text": "A family history of heart failure is reported.",
+      "concept": "heart_failure",
+      "start": 20,
+      "end": 33,
+      "assertion": "family"
+    },
+    {
+      "id": "test-family-3",
+      "split": "test",
+      "text": "His mother, rather than the patient, has COPD.",
+      "concept": "copd",
+      "start": 41,
+      "end": 45,
+      "assertion": "family"
+    },
+    {
+      "id": "test-family-4",
+      "split": "test",
+      "text": "An uncle takes medication for hypertension.",
+      "concept": "hypertension",
+      "start": 30,
+      "end": 42,
+      "assertion": "family"
+    },
+    {
+      "id": "test-family-5",
+      "split": "test",
+      "text": "The father is followed for chronic kidney disease.",
+      "concept": "kidney_disease",
+      "start": 27,
+      "end": 49,
+      "assertion": "family"
+    }
+  ]
+}
