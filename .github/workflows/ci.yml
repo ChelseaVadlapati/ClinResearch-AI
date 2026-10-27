@@ -77,6 +77,8 @@ jobs:
             python -m clinresearch.cli ingest-fhir tests/fixtures/fhir/bundle.json \
             --dataset fictional-v1 --synthetic-only --report /app/reports/fhir-repeat.json
           python -c 'import json; r=json.load(open("reports/fhir-repeat.json")); assert all(v == {"inserted": 0, "updated": 0} for v in r["changes"].values())'
+      - name: One-command demo without rebuilding or deleting data
+        run: COMPOSE_PROJECT_NAME=clinresearch-onecommand scripts/demo.sh
       - name: Preserve smoke evidence
         if: always()
         uses: actions/upload-artifact@v4

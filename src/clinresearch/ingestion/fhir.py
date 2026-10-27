@@ -36,7 +36,10 @@ def required(value, label):
 
 def timestamp(value):
     value = required(value, "timestamp")
-    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("invalid FHIR timestamp") from exc
     if "T" not in value or parsed.tzinfo is None:
         raise ValueError("timestamp requires time and timezone")
     return parsed.astimezone(UTC)
@@ -44,7 +47,10 @@ def timestamp(value):
 
 def day(value):
     value = required(value, "date")
-    return timestamp(value).date() if "T" in value else date.fromisoformat(value)
+    try:
+        return timestamp(value).date() if "T" in value else date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError("invalid FHIR date") from exc
 
 
 def coding(value):

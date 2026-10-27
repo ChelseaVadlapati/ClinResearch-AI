@@ -7,13 +7,13 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import Engine, create_engine, event
 
+from clinresearch.configuration import database_url
+
 
 def make_engine(url: str | None = None) -> Engine:
     """Create an engine; callers must configure DATABASE_URL explicitly."""
     url = url or os.environ.get("DATABASE_URL")
-    if not url:
-        raise RuntimeError("Set DATABASE_URL (see .env.example)")
-    engine = create_engine(url, pool_pre_ping=True)
+    engine = create_engine(database_url(url), pool_pre_ping=True)
     if engine.dialect.name == "sqlite":
 
         @event.listens_for(engine, "connect")

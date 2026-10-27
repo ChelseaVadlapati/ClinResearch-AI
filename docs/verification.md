@@ -298,3 +298,48 @@ explicit unknown fallback when neither source nor package metadata exists.
 Added an API regression for missing package metadata on both databases; focused
 exploration suite **16 passed**. This is a corrected hosted failure, not a claimed
 successful first run. The replacement Actions result is linked in PR #5.
+
+Corrected milestone 4 hosted gate: [40541361434](https://github.com/ChelseaVadlapati/ClinResearch-AI/actions/runs/40541361434), all four jobs passed.
+
+## Portfolio milestone 5 — reproducibility and recovery (2026-10-27)
+
+Final local Python 3.12 suite with SQLite and PostgreSQL: **178 passed, 1 skipped**
+(40.97 seconds). The skip is the intentional SQLite-only legacy-constraint bypass
+fixture on PostgreSQL. Ruff lint and formatting passed (67 files). Existing
+Starlette TestClient deprecation warning remains; it is not a test failure.
+New regressions cover sanitized configuration errors, JSON logging, demographic
+updates that invalidate retained events, rollback followed by successful reimport,
+unwritable reports before loading, and report failure after a committed import.
+
+```bash
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+set -a; source .env; set +a
+TEST_DATABASE_URL="$DATABASE_URL" .venv/bin/pytest -q
+DEMO_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt scripts/demo.sh
+```
+
+The CA option was required by this managed environment's certificate proxy; omit it
+on ordinary installations. The one-command demo passed Compose readiness and all
+three HTTP smoke scripts using a separate project and existing source-mounted
+images. It served dashboard port 18501 and API port 18000; artifacts were saved in
+`reports/demo-0c87e7bc178d46418bed9921170204e0`. A Chromium check verified the live
+cohort, untrained-model state and transformer `not_run` label. Prior volumes and
+artifacts were preserved. The CPU transformer experiment remains separately
+verified in milestone 3; the lightweight demo does not run it.
+
+Actual larger-export benchmarks accepted 73,773 records, with zero inserts/updates
+on repeat imports in both databases. Exact measurements, source hashes, hardware,
+rejection counts and commands are in [performance.md](performance.md) and
+`docs/benchmarks/*.json`. The resulting cohort had 11 eligible indices and zero
+observed positives: `insufficient_data`, no fitted model or fabricated scores.
+These single-run timings do not establish clinical validity or production scale.
+
+`uv build --wheel --out-dir /tmp/clinresearch-wheel` succeeded; the wheel includes
+Alembic migration files and the optional NLP workflow. This packaging check did
+not rebuild an application container. The final milestone PR links its hosted
+Actions results, including the new one-command Compose regression gate.
+
+Operational/privacy boundaries and recovery commands are documented in
+[security-and-operations.md](security-and-operations.md); the five-minute demo and
+implemented-feature-only resume description are in [interview-demo.md](interview-demo.md).
