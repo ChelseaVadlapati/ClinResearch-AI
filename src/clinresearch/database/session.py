@@ -1,10 +1,11 @@
 """Database engine configuration, with no embedded credentials."""
 
 import os
+from pathlib import Path
 
+from alembic import command
+from alembic.config import Config
 from sqlalchemy import Engine, create_engine, event
-
-from clinresearch.database.models import Base
 
 
 def make_engine(url: str | None = None) -> Engine:
@@ -23,5 +24,9 @@ def make_engine(url: str | None = None) -> Engine:
 
 
 def initialize(engine: Engine) -> None:
-    """Create the MVP schema; existing tables are preserved (not a migration tool)."""
-    Base.metadata.create_all(engine)
+    """Upgrade additively; preserve existing tables and records."""
+    config = Config()
+    config.set_main_option("script_location", str(Path(__file__).parent / "migrations"))
+    with engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.upgrade(config, "head")

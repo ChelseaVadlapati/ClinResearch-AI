@@ -11,6 +11,25 @@ not a University of Florida product or an endorsed clinical system. An optional
 research workflow evaluates a fixed readmission baseline on synthetic records;
 its scores do not establish clinical prediction performance.
 
+## Synthetic FHIR R4 imports
+
+FHIR resources and Bundles can feed the existing aggregate APIs and dashboard.
+Use a separate database and a stable version label; never mix equivalent CSV and
+FHIR exports in the same cohort:
+
+```bash
+DATABASE_URL=sqlite:///fhir-demo.db clinresearch ingest-fhir \
+  tests/fixtures/fhir/bundle.json --dataset fictional-v1 --synthetic-only \
+  --report reports/fhir-demo.json
+```
+
+Supports Patient, Encounter, Condition, Observation and MedicationRequest with
+local reference validation, duplicate/rejection accounting, deterministic IDs,
+source hashes, and idempotent imports. Additive Alembic migrations preserve
+existing records. See [field mappings and supported subset](docs/fhir-mapping.md)
+and the [milestone roadmap](docs/roadmap.md). Format validation is not proof of
+synthetic provenance; no real patient data may be used in the public demo.
+
 ## Research software architecture
 
 ```mermaid

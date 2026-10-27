@@ -10,7 +10,9 @@ from sqlalchemy.orm import Session
 from clinresearch.database.models import (
     Condition,
     Encounter,
+    FHIRResource,
     ImportRun,
+    MedicationRequest,
     Observation,
     Patient,
     RejectedRow,
@@ -22,6 +24,8 @@ MODELS = {
     "encounters": Encounter,
     "conditions": Condition,
     "observations": Observation,
+    "medication_requests": MedicationRequest,
+    "fhir_resources": FHIRResource,
 }
 
 
@@ -34,10 +38,14 @@ def load_export(engine: Engine, export: ValidatedExport) -> dict:
     """
     run_id = str(uuid4())
     report = {"run_id": run_id, "tables": export.report(), "changes": {}}
+    if export.metadata:
+        report["source"] = export.metadata
     with Session(engine) as session, session.begin():
         if engine.dialect.name == "postgresql":
             session.execute(text("SELECT pg_advisory_xact_lock(72841309)"))
         for table, model in MODELS.items():
+            if table not in export.rows:
+                continue
             inserted = updated = 0
             existing = {row.id: row for row in session.scalars(select(model))}
             for values in export.rows[table]:

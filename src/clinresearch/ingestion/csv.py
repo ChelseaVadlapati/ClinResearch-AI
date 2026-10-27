@@ -51,6 +51,7 @@ class ValidatedExport:
     rows: dict[str, list[dict]] = field(default_factory=dict)
     input_counts: dict[str, int] = field(default_factory=dict)
     rejected: list[Rejection] = field(default_factory=list)
+    metadata: dict = field(default_factory=dict)
 
     def reject(self, table: str, number: int, raw: dict, reason: str) -> None:
         """Record and log a rejection without logging the original field values."""
@@ -65,7 +66,7 @@ class ValidatedExport:
                 "accepted": len(self.rows[table]),
                 "rejected": sum(r.table_name == table for r in self.rejected),
             }
-            for table in REQUIRED
+            for table in self.input_counts
         }
 
 

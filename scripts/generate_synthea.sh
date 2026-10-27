@@ -4,6 +4,13 @@ set -euo pipefail
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 output="${1:-$project_root/data/synthea}"
 population="${2:-10}"
+format="${3:-csv}"
+if [[ "$format" != csv && "$format" != both ]]; then
+  echo "Format must be csv or both" >&2
+  exit 1
+fi
+fhir=false
+[[ "$format" == both ]] && fhir=true
 if [[ ! "$population" =~ ^[1-9][0-9]*$ ]]; then
   echo 'Population must be a positive integer' >&2
   exit 1
@@ -28,6 +35,6 @@ java -Duser.timezone=UTC -Duser.language=en -Duser.country=US -jar "$jar" \
   --generate.thread_pool_size=1 \
   --exporter.csv.export=true --exporter.csv.append_mode=false \
   --exporter.csv.folder_per_run=false --exporter.years_of_history=0 \
-  --exporter.fhir.export=false --exporter.hospital.fhir.export=false \
+  --exporter.fhir.export="$fhir" --exporter.hospital.fhir.export=false \
   --exporter.practitioner.fhir.export=false --exporter.baseDirectory="$output"
 printf 'CSV exports: %s/csv\n' "$output"
