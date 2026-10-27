@@ -11,6 +11,25 @@ not a University of Florida product or an endorsed clinical system. An optional
 research workflow evaluates a fixed readmission baseline on synthetic records;
 its scores do not establish clinical prediction performance.
 
+## Interactive research exploration
+
+The dashboard's labeled filters call `GET /cohort/explore` with age, gender and
+matching encounter criteria. They select patients; plots then summarize those
+patients' **full recorded history**. Ingestion audit remains database-wide. Clear
+filters to return to the complete synthetic demo. Empty selections display an
+explicit empty state. Aggregate CSV/JSON downloads contain no patient rows.
+
+Saved study configuration, outcome/feature distributions and calibration (only
+when available) are separate from exploration filters. Reports do not silently
+retrain or change with filters. Set `RESEARCH_REPORT_PATH` and `NLP_REPORT_PATH`
+on the API to point to actual saved runs. The NLP endpoint omits local error text
+and identifiers; it never substitutes the committed example results for a run.
+
+Source metadata identifies the latest batch and import timestamp, not guaranteed
+provenance for every earlier upsert. See [dashboard semantics](docs/dashboard.md).
+
+![Current synthetic research dashboard](docs/images/portfolio-dashboard.png)
+
 ## Experimental NLP (separate from the clinical-style dashboard)
 
 A fixed synthetic assertion benchmark compares the preserved rules, a CPU TF-IDF

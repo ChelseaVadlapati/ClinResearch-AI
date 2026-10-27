@@ -247,3 +247,54 @@ python scripts/smoke_research.py
 
 Use fresh output paths. Hosted CI includes a separate pinned CPU NLP job and
 archives its computed report, alongside existing lint/tests/Compose checks.
+
+Milestone 3 hosted gate: [Actions run 40538887923](https://github.com/ChelseaVadlapati/ClinResearch-AI/actions/runs/40538887923)
+passed Python 3.11/3.12 PostgreSQL tests, Compose smoke and actual pinned CPU NLP
+inference on `7f2ca04` before dashboard work began.
+
+## Portfolio milestone 4 — interactive research dashboard (2026-10-27)
+
+Added backend age/gender/matching-encounter selection with snapshot-consistent
+PostgreSQL aggregates, aggregate CSV/JSON downloads, latest-source/import/software
+metadata, saved study configuration, class/feature distributions and conditional
+calibration views. Saved study reports are explicitly independent of dashboard
+filters. A separate validated NLP endpoint exposes metrics only, excluding local
+error text, identifiers and source filenames. Added empty/error states, labeled
+controls and chart-table alternatives; retained synthetic/not-clinically-validated
+warnings throughout.
+
+Full Python 3.12 SQLite/PostgreSQL suite: **166 passed, 1 skipped**. Ruff lint and
+format passed. Existing Compose startup/API/dashboard/research smoke passed; new
+`scripts/smoke_explore.py` passed against live services. The API was also configured
+with the actual `reports/m2-config/report.json` and `data/nlp-verification-v1/report.json`:
+filtered counts and evaluated synthetic NLP aggregates were verified, without
+publishing error examples. Live Streamlit filter tests select F then inpatient,
+verifying counts change from 3 patients to 1 to 0 without exceptions.
+
+Playwright inspected Chromium at 1440x1050 and 390x844; no document-level horizontal
+overflow at mobile width. Actual screenshots are `docs/images/portfolio-dashboard.png`
+and `portfolio-mobile.png`. These are software UI checks, not a formal accessibility
+audit or clinical validation. Local review used a temporary Compose override for
+report paths; use equivalent API environment settings for your selected artifacts.
+
+```bash
+ruff check .
+ruff format --check .
+set -a; source .env; set +a
+TEST_DATABASE_URL="$DATABASE_URL" pytest -q
+python scripts/smoke_demo.py
+python scripts/smoke_research.py
+python scripts/smoke_explore.py
+```
+
+See `docs/dashboard.md` for filter semantics. Import quality is database-wide,
+while demographics and records summarize selected patients' full history. Latest
+batch provenance does not prove the provenance of retained rows from earlier imports.
+
+Milestone 4 hosted run 40540421372 exposed a source-mounted metadata assumption:
+`importlib.metadata.version` failed when the project itself was not installed.
+Fixed by reading the version from pyproject.toml in a source checkout, with an
+explicit unknown fallback when neither source nor package metadata exists.
+Added an API regression for missing package metadata on both databases; focused
+exploration suite **16 passed**. This is a corrected hosted failure, not a claimed
+successful first run. The replacement Actions result is linked in PR #5.
