@@ -11,6 +11,19 @@ not a University of Florida product or an endorsed clinical system. An optional
 research workflow evaluates a fixed readmission baseline on synthetic records;
 its scores do not establish clinical prediction performance.
 
+## Versioned research runs
+
+```bash
+clinresearch analyze --observation-end 2025-01-01 --split-date 2024-01-01 \
+  --config configs/adult-return-v1.json --output reports/research-config-v1
+```
+
+Choose a fresh output directory. The saved configuration/hash, cohort flow,
+class counts and feature distributions make runs inspectable even when the
+model status is `insufficient_data`. The supplied configuration tightens sample
+requirements; it is not a power analysis. Read the [model card](docs/model-card.md),
+[data dictionary](docs/data-dictionary.md), and [study protocol](docs/study-protocol.md).
+
 ## Synthetic FHIR R4 imports
 
 FHIR resources and Bundles can feed the existing aggregate APIs and dashboard.

@@ -31,14 +31,18 @@ def main() -> None:
     research.add_argument("--observation-end", type=date.fromisoformat, required=True)
     research.add_argument("--split-date", type=date.fromisoformat, required=True)
     research.add_argument("--output", type=Path, required=True)
+    research.add_argument("--config", type=Path)
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     engine = make_engine()
     if args.command == "analyze":
+        from clinresearch.research.config import load_config
         from clinresearch.research.run import run_analysis
 
         try:
-            report = run_analysis(engine, args.observation_end, args.split_date, args.output)
+            report = run_analysis(
+                engine, args.observation_end, args.split_date, args.output, load_config(args.config)
+            )
         except (OSError, SQLAlchemyError):
             parser.exit(1, "Analysis not written: database or output unavailable\n")
         except ValueError as exc:

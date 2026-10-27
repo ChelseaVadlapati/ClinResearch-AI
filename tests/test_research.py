@@ -365,6 +365,7 @@ def test_evaluated_report_round_trip_and_nan_rejected(loaded, tmp_path, monkeypa
     report["cohort_audit"] = {"eligible_patients": 40, "positive_outcomes": 20}
     report["notes"]["count"] = 40
     report.pop("cohort_flow", None)
+    report.pop("descriptive", None)
     path = output / "report.json"
     path.write_text(json.dumps(report))
     monkeypatch.setenv("RESEARCH_REPORT_PATH", str(path))
