@@ -290,3 +290,11 @@ python scripts/smoke_explore.py
 See `docs/dashboard.md` for filter semantics. Import quality is database-wide,
 while demographics and records summarize selected patients' full history. Latest
 batch provenance does not prove the provenance of retained rows from earlier imports.
+
+Milestone 4 hosted run 40540421372 exposed a source-mounted metadata assumption:
+`importlib.metadata.version` failed when the project itself was not installed.
+Fixed by reading the version from pyproject.toml in a source checkout, with an
+explicit unknown fallback when neither source nor package metadata exists.
+Added an API regression for missing package metadata on both databases; focused
+exploration suite **16 passed**. This is a corrected hosted failure, not a claimed
+successful first run. The replacement Actions result is linked in PR #5.

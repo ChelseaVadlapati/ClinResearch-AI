@@ -3,7 +3,7 @@
 import csv
 import io
 from datetime import UTC, date, datetime
-from importlib.metadata import version
+from importlib.metadata import PackageNotFoundError, version
 
 from sqlalchemy import Date, case, extract, literal, select
 from sqlalchemy.orm import Session
@@ -15,6 +15,20 @@ from clinresearch.transformations.summaries import (
     common_conditions,
     monthly_encounters,
 )
+
+
+def software_version() -> str:
+    try:
+        return version("clinresearch-ai")
+    except PackageNotFoundError:
+        # Source-mounted Compose intentionally installs dependencies, not the project.
+        import tomllib
+        from pathlib import Path
+
+        project = Path(__file__).resolve().parents[3] / "pyproject.toml"
+        if project.is_file():
+            return tomllib.loads(project.read_text())["project"]["version"] + " (source checkout)"
+        return "unknown (package metadata unavailable)"
 
 
 def explore(
@@ -86,7 +100,7 @@ def explore(
                     "latest_format": latest.report.get("source", {}).get("format", "Synthea CSV")
                     if latest
                     else None,
-                    "software_version": version("clinresearch-ai"),
+                    "software_version": software_version(),
                     "scope": "Latest batch metadata; database may contain earlier imports.",
                 }
     return {

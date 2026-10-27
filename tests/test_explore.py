@@ -92,3 +92,16 @@ def test_nlp_aggregate_report_and_malformed_counts(loaded, tmp_path, monkeypatch
         assert client.get("/nlp/report").status_code == 503
         path.unlink()
         assert client.get("/nlp/report").json()["status"] == "not_run"
+
+
+def test_source_checkout_version_without_installed_metadata(loaded, monkeypatch):
+    from importlib.metadata import PackageNotFoundError
+
+    def absent(_):
+        raise PackageNotFoundError("clinresearch-ai")
+
+    monkeypatch.setattr("clinresearch.transformations.explore.version", absent)
+    with TestClient(create_app(loaded)) as client:
+        response = client.get("/cohort/explore")
+        assert response.status_code == 200
+        assert response.json()["source"]["software_version"] == "0.1.0 (source checkout)"
