@@ -62,6 +62,15 @@ jobs:
             --observation-end 2025-01-01 --split-date 2024-01-01 \
             --output /app/reports/research
           python scripts/smoke_research.py
+      - name: Import FHIR without mixing populations
+        run: |
+          docker compose run --rm --no-deps -e DATABASE_URL=sqlite:////app/reports/fhir-ci.db ingest \
+            python -m clinresearch.cli ingest-fhir tests/fixtures/fhir/bundle.json \
+            --dataset fictional-v1 --synthetic-only --report /app/reports/fhir-ci.json
+          docker compose run --rm --no-deps -e DATABASE_URL=sqlite:////app/reports/fhir-ci.db ingest \
+            python -m clinresearch.cli ingest-fhir tests/fixtures/fhir/bundle.json \
+            --dataset fictional-v1 --synthetic-only --report /app/reports/fhir-repeat.json
+          python -c 'import json; r=json.load(open("reports/fhir-repeat.json")); assert all(v == {"inserted": 0, "updated": 0} for v in r["changes"].values())'
       - name: Preserve smoke evidence
         if: always()
         uses: actions/upload-artifact@v4

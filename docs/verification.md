@@ -116,3 +116,51 @@ TEST_DATABASE_URL="$DATABASE_URL" .venv/bin/pytest -q
 Compose reproduction commands are in README under “Reproduce without rebuilding
 the application image.” Hosted Actions results are recorded in PR #1; the prior
 head failed lint and Streamlit startup, and this revision addresses both failures.
+
+## Portfolio milestone 1 — FHIR R4 (2026-10-27)
+
+Baseline latest main: `4e41f67`, PR #1 already merged externally. Baseline was
+115 passed/1 skipped with SQLite/PostgreSQL; Ruff lint and format passed.
+Implemented the supported FHIR subset and additive Alembic revisions on
+`feat/fhir-r4-integration`; preserved the CSV schema and API behavior.
+
+Validation after adding FHIR and live-dashboard regressions: **135 passed,
+1 skipped** on Python 3.12, SQLite + PostgreSQL 16. The skip remains the legacy
+SQLite-specific constraint bypass. Ruff lint/format and git diff whitespace pass.
+Existing Compose API/dashboard and research smoke scripts pass after migration;
+the first immediate-after-restart check encountered a connection reset, then
+passed after waiting for container health. FHIR CLI fixture import and repeat
+import pass in a separate SQLite database; repeat has zero inserts/updates for
+all six normalized/provenance tables. Tests render both CSV and FHIR data through
+a live FastAPI server and Streamlit AppTest. No application image was rebuilt.
+
+Fresh official Synthea v3.3.0 paired CSV/FHIR generation (Java 21, population 2,
+seed 42, existing fixed dates) produced 2 patients. FHIR validation accepted
+2 patients, 545 encounters, 294 conditions, 5,031 observations and 419 medication
+requests. All 245 rejected supported records were component-only/absent-value
+observations, a documented unsupported shape. Other resource types are separately
+counted as unsupported. CSV has 7,793 input observations (7 duplicate rejections);
+CSV flattens data differently, so observation counts are not equivalent. No
+FHIR-to-CSV scientific equivalence or clinical validity is claimed.
+
+Commands (activate the locked environment first):
+
+```bash
+ruff check .
+ruff format --check .
+set -a; source .env; set +a
+TEST_DATABASE_URL="$DATABASE_URL" pytest -q
+scripts/generate_synthea.sh "$PWD/data/fhir-verification" 2 both
+DATABASE_URL=sqlite:///fhir-demo.db clinresearch ingest-fhir \
+  tests/fixtures/fhir/bundle.json --dataset fictional-v1 --synthetic-only \
+  --report reports/fhir-demo.json
+export COMPOSE_PROJECT_NAME=clinresearch-review
+export COMPOSE_FILE=docker-compose.yml:docker-compose.ci.yml
+docker compose up --no-build -d --wait
+python scripts/smoke_demo.py
+python scripts/smoke_research.py
+```
+
+Choose a fresh generation/output directory when reproducing. The actual paired
+export is ignored under `data/fhir-verification`. Hosted CI evidence is linked
+in the milestone PR; later milestones must not start until that check passes.

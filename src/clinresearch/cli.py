@@ -22,6 +22,11 @@ def main() -> None:
     ingest = sub.add_parser("ingest")
     ingest.add_argument("directory", type=Path)
     ingest.add_argument("--report", type=Path, required=True)
+    fhir = sub.add_parser("ingest-fhir", help="Import synthetic FHIR R4 resources or Bundles")
+    fhir.add_argument("directory", type=Path)
+    fhir.add_argument("--dataset", required=True, help="Stable synthetic dataset version namespace")
+    fhir.add_argument("--synthetic-only", action="store_true", required=True)
+    fhir.add_argument("--report", type=Path, required=True)
     research = sub.add_parser("analyze", help="Simulated notes and temporal readmission evaluation")
     research.add_argument("--observation-end", type=date.fromisoformat, required=True)
     research.add_argument("--split-date", type=date.fromisoformat, required=True)
@@ -44,7 +49,12 @@ def main() -> None:
         initialize(engine)
         return
     try:
-        export = validate_export(args.directory)
+        if args.command == "ingest-fhir":
+            from clinresearch.ingestion.fhir import validate_fhir
+
+            export = validate_fhir(args.directory, args.dataset)
+        else:
+            export = validate_export(args.directory)
     except SchemaError as exc:
         parser.exit(1, f"Schema validation failed; no records loaded: {exc}\n")
     # Check report path before committing anything to the database.

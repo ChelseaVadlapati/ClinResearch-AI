@@ -110,3 +110,39 @@ class RejectedRow(Base):
     row_number: Mapped[int]
     reason: Mapped[str]
     raw: Mapped[dict] = mapped_column(JSON)
+
+
+class MedicationRequest(Base):
+    """Synthetic medication orders, not evidence of dispensing or adherence."""
+
+    __tablename__ = "medication_requests"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["encounter_id", "patient_id"], ["encounters.id", "encounters.patient_id"]
+        ),
+    )
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    patient_id: Mapped[str] = mapped_column(ForeignKey("patients.id"), index=True)
+    encounter_id: Mapped[str | None] = mapped_column(String(36))
+    authored_on: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    system: Mapped[str]
+    code: Mapped[str]
+    description: Mapped[str]
+    status: Mapped[str]
+    intent: Mapped[str]
+
+
+class FHIRResource(Base):
+    """Local-only source identifiers and hashes; never a public API response."""
+
+    __tablename__ = "fhir_resources"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    dataset: Mapped[str]
+    resource_type: Mapped[str]
+    resource_id: Mapped[str]
+    source_file: Mapped[str]
+    sha256: Mapped[str] = mapped_column(String(64))
+    identifiers: Mapped[list] = mapped_column(JSON)
+    coding: Mapped[list] = mapped_column(JSON)
+    normalized_table: Mapped[str]
+    normalized_id: Mapped[str]
