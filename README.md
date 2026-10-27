@@ -13,11 +13,26 @@ its scores do not establish clinical prediction performance.
 
 ## One-command synthetic demo
 
-With Docker Compose v2 and Python 3.11+ installed:
+With Docker Compose v2 and Python 3.11+ installed, start Docker Desktop/Engine.
+For a new checkout after the portfolio integration PR is merged:
 
 ```bash
+git clone https://github.com/ChelseaVadlapati/ClinResearch-AI.git
+cd ClinResearch-AI
+git switch main
 scripts/demo.sh
 ```
+
+For an existing checkout, run `git status` first and preserve any local changes,
+then `git switch main` and `git pull --ff-only origin main` before running the
+script. Do not repeat `cd ClinResearch-AI` if already in that directory.
+While the integration PR is under review, use `integration/portfolio-main` instead
+of `main`; merging earlier stacked PRs into feature branches did not update main.
+
+The default dashboard intentionally loads **3 fictional patients**, with 3
+encounters, 3 conditions and 3 observations. The larger Synthea verification
+exports are separate from this fixture and are not automatically loaded. Their
+committed benchmark reports are evidence, not bundled patient populations.
 
 Open the printed dashboard URL (default port **18501**; API **18000**). The script
 uses a separate Compose project, hash-locked dependencies and fresh report paths.
@@ -230,8 +245,6 @@ numbers displayed in the dashboard are computed from the database.
 docker compose run --rm ingest
 # Stop services; retain demo data for next use.
 docker compose down
-# Optional destructive reset of this demo database only:
-docker compose down -v
 ```
 
 Use `.env.example` if configuring credentials manually. Keep passwords out of
