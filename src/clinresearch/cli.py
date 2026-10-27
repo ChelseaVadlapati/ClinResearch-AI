@@ -2,13 +2,13 @@
 
 import argparse
 import json
-import logging
 from dataclasses import asdict
 from datetime import date
 from pathlib import Path
 
 from sqlalchemy.exc import SQLAlchemyError
 
+from clinresearch.configuration import configure_logging
 from clinresearch.database.load import load_export
 from clinresearch.database.session import initialize, make_engine
 from clinresearch.ingestion.csv import SchemaError, validate_export
@@ -33,8 +33,13 @@ def main() -> None:
     research.add_argument("--output", type=Path, required=True)
     research.add_argument("--config", type=Path)
     args = parser.parse_args()
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
-    engine = make_engine()
+    configure_logging()
+    try:
+        engine = make_engine()
+    except (ValueError, RuntimeError):
+        parser.exit(
+            1, "Invalid database configuration; check DATABASE_URL (no connection attempted)\n"
+        )
     if args.command == "analyze":
         from clinresearch.research.config import load_config
         from clinresearch.research.run import run_analysis
@@ -50,7 +55,12 @@ def main() -> None:
         print(json.dumps(report, indent=2))
         return
     if args.command == "init-db":
-        initialize(engine)
+        try:
+            initialize(engine)
+        except (OSError, SQLAlchemyError, RuntimeError):
+            parser.exit(
+                1, "Database initialization failed; check availability and schema compatibility\n"
+            )
         return
     try:
         if args.command == "ingest-fhir":
@@ -61,22 +71,32 @@ def main() -> None:
             export = validate_export(args.directory)
     except SchemaError as exc:
         parser.exit(1, f"Schema validation failed; no records loaded: {exc}\n")
-    # Check report path before committing anything to the database.
-    args.report.parent.mkdir(parents=True, exist_ok=True)
-    with args.report.open("w") as output:
-        json.dump(
-            {
-                "status": "validated",
-                "tables": export.report(),
-                "rejections": [asdict(r) for r in export.rejected],
-            },
-            output,
-            indent=2,
+    # Persist validation evidence before any database commit; never log raw records.
+    validation = {
+        "status": "validated_not_committed",
+        "tables": export.report(),
+        "rejections": [asdict(r) for r in export.rejected],
+    }
+    try:
+        args.report.parent.mkdir(parents=True, exist_ok=True)
+        args.report.write_text(json.dumps(validation, indent=2) + "\n")
+    except OSError:
+        parser.exit(1, "Report path unavailable; no records loaded\n")
+    try:
+        initialize(engine)
+        report = load_export(engine, export)
+    except (SQLAlchemyError, ValueError, RuntimeError):
+        parser.exit(
+            1, "Import failed; transaction not committed. Check database/schema/data integrity.\n"
         )
-    initialize(engine)
-    report = load_export(engine, export)
+    report["status"] = "committed"
     report["rejections"] = [asdict(r) for r in export.rejected]
-    args.report.write_text(json.dumps(report, indent=2) + "\n")
+    try:
+        args.report.write_text(json.dumps(report, indent=2) + "\n")
+    except OSError:
+        parser.exit(
+            1, "Import committed; final report write failed. Inspect database import_runs audit.\n"
+        )
     print(json.dumps({k: v for k, v in report.items() if k != "rejections"}, indent=2))
     if export.rejected:
         parser.exit(2, "Accepted rows loaded; inspect rejection report before proceeding.\n")

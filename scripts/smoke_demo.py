@@ -23,6 +23,9 @@ assert get("/encounters/monthly") == [
     {"month": "2024-03", "encounters": 1},
 ]
 assert get("/conditions/common?limit=1")[0]["occurrences"] == 2
-with urlopen("http://localhost:8501/_stcore/health", timeout=10) as response:
+with urlopen(
+    os.getenv("DASHBOARD_BASE_URL", "http://localhost:8501").rstrip("/") + "/_stcore/health",
+    timeout=10,
+) as response:
     assert response.read().decode() == "ok"
 print("PASS: four API endpoints match fixture expectations; Streamlit health is ok.")

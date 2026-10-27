@@ -51,7 +51,7 @@ class PublicNLPReport(BaseModel):
     model_config = ConfigDict(extra="ignore", strict=True, allow_inf_nan=False)
     schema_version: Literal[1]
     synthetic_only: Literal[True]
-    dataset_version: str
+    dataset_version: str = Field(pattern=r"^[a-zA-Z0-9_.-]{1,100}$")
     dataset_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     train_examples: Count
     test_examples: Count

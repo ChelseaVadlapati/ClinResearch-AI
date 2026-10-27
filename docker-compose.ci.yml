@@ -11,6 +11,7 @@ services:
       - -m
       - pip
       - install
+      - --upgrade
       - --require-hashes
       - -r
       - requirements.lock
@@ -33,7 +34,7 @@ services:
       - ingest
       - /app/tests/fixtures/synthea
       - --report
-      - /app/reports/demo.json
+      - ${INGEST_REPORT_PATH:-/app/reports/demo.json}
     depends_on:
       deps:
         condition: service_completed_successfully
