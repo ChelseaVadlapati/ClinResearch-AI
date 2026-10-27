@@ -62,6 +62,10 @@ jobs:
             --observation-end 2025-01-01 --split-date 2024-01-01 \
             --output /app/reports/research
           python scripts/smoke_research.py
+          docker compose run --rm --no-deps ingest python -m clinresearch.cli analyze \
+            --observation-end 2025-01-01 --split-date 2024-01-01 \
+            --config /app/configs/adult-return-v1.json --output /app/reports/research-config
+          python -c 'import json; r=json.load(open("reports/research-config/report.json")); assert r["evaluation"]["status"] == "insufficient_data"; assert r["study_config"]["min_partition_patients"] == 100'
       - name: Import FHIR without mixing populations
         run: |
           docker compose run --rm --no-deps -e DATABASE_URL=sqlite:////app/reports/fhir-ci.db ingest \

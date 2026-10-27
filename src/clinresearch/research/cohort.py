@@ -7,6 +7,7 @@ from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
 
 from clinresearch.database.models import Condition, Encounter, Patient
+from clinresearch.research.config import StudyConfig
 
 FEATURES = ["age", "length_of_stay_days", "prior_inpatient_365d", "known_condition_count"]
 HORIZON = timedelta(days=30)
@@ -16,7 +17,9 @@ def utc(value: datetime) -> datetime:
     return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)
 
 
-def build_cohort(engine: Engine, observation_end: date) -> tuple[list[dict], dict]:
+def build_cohort(
+    engine: Engine, observation_end: date, config: StudyConfig | None = None
+) -> tuple[list[dict], dict]:
     """Observation end is an exclusive UTC boundary supplied from export provenance.
 
     Merge overlapping/touching inpatient stays. Unknown-stop episodes cannot be
@@ -24,6 +27,7 @@ def build_cohort(engine: Engine, observation_end: date) -> tuple[list[dict], dic
     their first eligible adult discharge only. Death during follow-up excludes
     the index, including positives, to keep the eligibility rule outcome-blind.
     """
+    config = config or StudyConfig()
     end = datetime.combine(observation_end, datetime.min.time(), UTC)
     counts = Counter()
     rows = []
@@ -91,6 +95,20 @@ def build_cohort(engine: Engine, observation_end: date) -> tuple[list[dict], dic
                     if age < 18:
                         counts["excluded_under_18"] += 1
                         continue
+                    if age < config.minimum_age or (
+                        config.maximum_age is not None and age > config.maximum_age
+                    ):
+                        counts["excluded_config_age"] += 1
+                        continue
+                    if (
+                        config.index_start
+                        and discharge.date() < date.fromisoformat(config.index_start)
+                    ) or (
+                        config.index_end_exclusive
+                        and discharge.date() >= date.fromisoformat(config.index_end_exclusive)
+                    ):
+                        counts["excluded_index_window"] += 1
+                        continue
                     if discharge + HORIZON >= end:
                         counts["excluded_incomplete_followup"] += 1
                         continue
@@ -152,6 +170,8 @@ def build_cohort(engine: Engine, observation_end: date) -> tuple[list[dict], dic
         "episodes_total",
         "excluded_missing_stop",
         "excluded_under_18",
+        "excluded_config_age",
+        "excluded_index_window",
         "excluded_incomplete_followup",
         "excluded_death_by_horizon",
         "not_selected_after_index",

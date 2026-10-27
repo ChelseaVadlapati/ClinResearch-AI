@@ -77,3 +77,18 @@ small rule-based NLP vocabulary is not validated against independent clinical
 annotations. Bootstrap intervals condition on the fitted model and omit training
 uncertainty. No external validation, clinical deployment or research performance
 claim is justified. See `docs/verification.md` for observed checks and limitations.
+
+## Versioned cohort configuration
+
+`clinresearch analyze --config configs/adult-return-v1.json` applies version-1
+adult age bounds, optional inclusive index start/exclusive index end, and stricter
+partition sufficiency gates. The date window applies to index selection only:
+lookback history and follow-up events remain available. Eligibility exclusions
+`excluded_config_age` and `excluded_index_window` reconcile in the episode flow.
+Endpoint (30 days), lookback (365 days), seed and feature availability remain fixed.
+
+The supplied example requires 100 patients/20 per class in both partitions; the
+legacy no-config 10/2 gate is preserved for compatibility. Both are software gates,
+not power analyses. `study_config.json`, `config_sha256` and descriptive summaries
+are saved with the report. See `data-dictionary.md` and `model-card.md` for statistical
+methods, missingness semantics, uncertainty and remaining research limitations.

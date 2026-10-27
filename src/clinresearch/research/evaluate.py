@@ -15,6 +15,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from clinresearch.research.cohort import FEATURES, HORIZON
+from clinresearch.research.config import StudyConfig
 
 LIMITATIONS = [
     "Synthetic data and simulated notes cannot establish clinical validity or real-world utility.",
@@ -42,12 +43,13 @@ def metrics(y: np.ndarray, probability: np.ndarray) -> dict:
     }
 
 
-def evaluate(rows: list[dict], split_date: date) -> dict:
+def evaluate(rows: list[dict], split_date: date, config: StudyConfig | None = None) -> dict:
     """No fitting until both partitions contain >=10 patients and >=2 per class.
 
     These are software guardrails, not a statistical power justification.
     Bootstrap resamples held-out patients with the fitted model fixed.
     """
+    config = config or StudyConfig()
     cutoff = datetime.combine(split_date, datetime.min.time(), UTC)
     if len({row["patient_id"] for row in rows}) != len(rows):
         raise ValueError("Cohort must contain exactly one index per patient")
@@ -79,7 +81,8 @@ def evaluate(rows: list[dict], split_date: date) -> dict:
         "threshold": 0.5,
         "method": "StandardScaler + LogisticRegression(C=1, max_iter=2000, random_state=42)",
         "sklearn_version": sklearn.__version__,
-        "reason": "Each partition needs >=10 patients and >=2 outcomes of each class.",
+        "reason": f"Each partition needs >={config.min_partition_patients} patients "
+        f"and >={config.min_partition_class_count} outcomes of each class.",
     }
     for name, partition in [("train", train), ("test", test), ("purged", purged)]:
         report["split"][name] = {
@@ -89,8 +92,9 @@ def evaluate(rows: list[dict], split_date: date) -> dict:
             "discharge_max": max((r["discharge"] for r in partition), default=None),
         }
     if any(
-        len(partition) < 10
-        or min(sum(r["readmission_30d"] == label for r in partition) for label in [0, 1]) < 2
+        len(partition) < config.min_partition_patients
+        or min(sum(r["readmission_30d"] == label for r in partition) for label in [0, 1])
+        < config.min_partition_class_count
         for partition in [train, test]
     ):
         return report

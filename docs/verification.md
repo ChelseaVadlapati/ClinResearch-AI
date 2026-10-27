@@ -164,3 +164,41 @@ python scripts/smoke_research.py
 Choose a fresh generation/output directory when reproducing. The actual paired
 export is ignored under `data/fhir-verification`. Hosted CI evidence is linked
 in the milestone PR; later milestones must not start until that check passes.
+
+Milestone 1 hosted gate: [Actions run 40536007024](https://github.com/ChelseaVadlapati/ClinResearch-AI/actions/runs/40536007024)
+passed Python 3.11/3.12 PostgreSQL tests and Compose smoke on `88c9024`.
+Milestone 2 starts on a stacked branch from milestone 1; neither PR is auto-merged.
+
+## Portfolio milestone 2 — versioned research cohorts (2026-10-27)
+
+Stacked on milestone 1. Versioned configuration preserves the 30-day endpoint,
+365-day lookback and seed while allowing adult age bounds, index date windows and
+stricter class/sample gates. Windows filter indices, not lookback/outcome records.
+Added reconciled exclusions, config hash, complete saved config, descriptive
+quartiles/histograms, class counts and conditional Wilson intervals. Added data
+dictionary, model card and protocol updates; no additional model is justified.
+
+Python 3.12 with SQLite/PostgreSQL: **147 passed, 1 skipped** (same SQLite-only
+case). Ruff lint/format passed. Live API/Streamlit regressions pass. Compose config
+analysis in fresh `reports/m2-config` returns zero eligible fixture indices and
+`insufficient_data`, with no model or metrics. Existing CSV/API/dashboard and
+research smoke checks remain required. No scientific performance is inferred.
+
+```bash
+ruff check .
+ruff format --check .
+set -a; source .env; set +a
+TEST_DATABASE_URL="$DATABASE_URL" pytest -q
+docker compose run --rm --no-deps ingest python -m clinresearch.cli analyze \
+  --observation-end 2025-01-01 --split-date 2024-01-01 \
+  --config configs/adult-return-v1.json --output /app/reports/m2-config
+python scripts/smoke_demo.py
+python scripts/smoke_research.py
+```
+
+Use README's source-mounted Compose configuration and a new output directory.
+The example requires 100 patients and 20 of each class per partition, not a power
+calculation. No-config behavior retains historical 10/2 software guardrails.
+Descriptive Wilson intervals are withheld below 20 patients or 2 of either class.
+Clinical validity, outside-care completeness and recording-time availability remain
+unestablished. Hosted CI is checked in the milestone PR before proceeding.

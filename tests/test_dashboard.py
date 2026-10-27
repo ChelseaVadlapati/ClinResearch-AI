@@ -28,6 +28,7 @@ def test_dashboard_with_live_api(loaded, monkeypatch, tmp_path, research_state):
             report["cohort_audit"] = {"eligible_patients": 40, "positive_outcomes": 20}
             report["notes"]["count"] = 40
             report.pop("cohort_flow", None)
+            report.pop("descriptive", None)
             report_path.write_text(json.dumps(report))
         if research_state == "invalid":
             report_path.write_text('{"schema_version": 1, "notes": []}')
