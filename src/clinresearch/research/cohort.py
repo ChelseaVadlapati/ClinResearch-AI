@@ -129,7 +129,9 @@ def build_cohort(engine: Engine, observation_end: date) -> tuple[list[dict], dic
                             "length_of_stay_days": (discharge - episode["start"]).total_seconds()
                             / 86400,
                             "prior_inpatient_365d": sum(
-                                discharge - timedelta(days=365) <= earlier["start"] < episode["start"]
+                                discharge - timedelta(days=365)
+                                <= earlier["start"]
+                                < episode["start"]
                                 for earlier in episodes[:i]
                             ),
                             "known_condition_count": len({(c.system, c.code) for c in known}),
@@ -142,11 +144,20 @@ def build_cohort(engine: Engine, observation_end: date) -> tuple[list[dict], dic
                     if episodes:
                         counts["patients_with_no_eligible_episode"] += 1
     for key in (
-        "encounters_total", "excluded_non_inpatient", "excluded_at_or_after_observation_end",
-        "inpatient_records", "merged_encounters", "episodes_total", "excluded_missing_stop",
-        "excluded_under_18", "excluded_incomplete_followup", "excluded_death_by_horizon",
-        "not_selected_after_index", "patients_without_eligible_index",
-        "patients_without_inpatient_before_end", "patients_with_no_eligible_episode",
+        "encounters_total",
+        "excluded_non_inpatient",
+        "excluded_at_or_after_observation_end",
+        "inpatient_records",
+        "merged_encounters",
+        "episodes_total",
+        "excluded_missing_stop",
+        "excluded_under_18",
+        "excluded_incomplete_followup",
+        "excluded_death_by_horizon",
+        "not_selected_after_index",
+        "patients_without_eligible_index",
+        "patients_without_inpatient_before_end",
+        "patients_with_no_eligible_episode",
     ):
         counts.setdefault(key, 0)
     counts["eligible_patients"] = len(rows)

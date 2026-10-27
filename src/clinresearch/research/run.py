@@ -74,18 +74,29 @@ def cohort_flow(audit: dict) -> list[dict]:
     """Mutually exclusive dispositions within each unit; never sum across units."""
     groups = {
         "record": [
-            "excluded_non_inpatient", "excluded_at_or_after_observation_end", "inpatient_records",
+            "excluded_non_inpatient",
+            "excluded_at_or_after_observation_end",
+            "inpatient_records",
         ],
         "episode": [
-            "excluded_missing_stop", "excluded_under_18", "excluded_incomplete_followup",
-            "excluded_death_by_horizon", "not_selected_after_index", "eligible_patients",
+            "excluded_missing_stop",
+            "excluded_under_18",
+            "excluded_incomplete_followup",
+            "excluded_death_by_horizon",
+            "not_selected_after_index",
+            "eligible_patients",
         ],
         "patient": [
-            "patients_without_inpatient_before_end", "patients_with_no_eligible_episode",
+            "patients_without_inpatient_before_end",
+            "patients_with_no_eligible_episode",
             "eligible_patients",
         ],
     }
-    totals = {"record": "encounters_total", "episode": "episodes_total", "patient": "patients_total"}
+    totals = {
+        "record": "encounters_total",
+        "episode": "episodes_total",
+        "patient": "patients_total",
+    }
     for unit, keys in groups.items():
         if sum(audit[key] for key in keys) != audit[totals[unit]]:
             raise ValueError(f"Cohort flow does not reconcile: {unit}")
@@ -93,5 +104,6 @@ def cohort_flow(audit: dict) -> list[dict]:
         raise ValueError("Merged inpatient record count does not reconcile")
     return [
         {"unit": unit, "disposition": key, "count": audit[key]}
-        for unit, keys in groups.items() for key in keys
+        for unit, keys in groups.items()
+        for key in keys
     ]

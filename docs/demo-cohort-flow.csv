@@ -1,0 +1,13 @@
+unit,disposition,count
+record,excluded_non_inpatient,3
+record,excluded_at_or_after_observation_end,0
+record,inpatient_records,0
+episode,excluded_missing_stop,0
+episode,excluded_under_18,0
+episode,excluded_incomplete_followup,0
+episode,excluded_death_by_horizon,0
+episode,not_selected_after_index,0
+episode,eligible_patients,0
+patient,patients_without_inpatient_before_end,3
+patient,patients_with_no_eligible_episode,0
+patient,eligible_patients,0

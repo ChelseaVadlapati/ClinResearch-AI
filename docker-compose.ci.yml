@@ -65,5 +65,7 @@ services:
       - src/clinresearch/dashboard/app.py
       - --server.address=0.0.0.0
       - --server.port=8501
+      - --global.developmentMode=false
+      - --server.fileWatcherType=none
 volumes:
   ci_python:

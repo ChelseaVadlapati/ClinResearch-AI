@@ -24,7 +24,10 @@ and click **Refresh data** to see the saved report. The API serves aggregates at
 return HTTP 503. The API mounts `reports/` read-only. Set `RESEARCH_REPORT_PATH`
 for a different report location (or use a separate Compose override).
 
+See [study protocol](study-protocol.md) for the prespecified contract.
 Each run writes a **new** directory and refuses to overwrite one:
+
+- `cohort_flow.csv`: reconciled eligible/excluded dispositions by record, episode, and patient.
 
 - `cohort.csv`: one eligible index discharge per patient, features, and outcome.
 - `simulated_notes.jsonl`: conspicuously labeled text, source IDs, discharge time,

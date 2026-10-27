@@ -11,6 +11,81 @@ not a University of Florida product or an endorsed clinical system. An optional
 research workflow evaluates a fixed readmission baseline on synthetic records;
 its scores do not establish clinical prediction performance.
 
+## Research software architecture
+
+```mermaid
+flowchart LR
+    S[Synthetic Synthea CSVs] --> V[Validation and rejection audit]
+    V --> D[(PostgreSQL)]
+    D --> A[Aggregate FastAPI endpoints]
+    A --> U[Streamlit dashboard]
+    D --> C[Eligible index cohort and flow accounting]
+    C --> N[Labeled simulated notes and rule based NLP]
+    C --> T[Purged temporal split]
+    T --> E{Enough observed outcomes?}
+    E -->|No| I[insufficient_data: no model or scores]
+    E -->|Yes| M[Training only scaling and fixed logistic baseline]
+    N --> R[Validated aggregate report]
+    M --> R
+    I --> R
+    R --> A
+```
+
+The API exposes aggregates only. Notes and row-level research artifacts stay in
+local output folders. Read the [study protocol](docs/study-protocol.md) before
+interpreting any output. The demo is synthetic-only and not clinically validated;
+source format validation cannot certify the provenance of arbitrary user imports.
+Do not connect a publicly accessible demo to a database containing real records.
+
+| Implemented feature | Verifiable evidence |
+| --- | --- |
+| Reject negative encounter durations and invalid joins | `tests/test_ingestion.py`, `tests/test_database_api.py` |
+| Adult index eligibility, transfer merging, observed return boundary | `tests/test_research.py` |
+| Future-record exclusion, purged split, training-only scaling | `tests/test_research.py` |
+| Deterministic evaluation and no scores for insufficient outcomes | `tests/test_research.py` |
+| Reconciled record/episode/patient flow | `cohort_flow.csv`, report API and regression tests |
+| Invalid report HTTP 503 and sanitized CLI database failure | `tests/test_research.py`, `tests/test_cli.py` |
+| Live API and dashboard | `scripts/smoke_demo.py`, `scripts/smoke_research.py` |
+
+## Reproduce without rebuilding the application image
+
+The source-mounted Compose configuration used by CI installs hash-locked
+packages into a separate dependency volume. It preserves the existing application
+image. Run in a clean checkout with free ports 5432, 8000 and 8501:
+
+```bash
+# Skip initialization if .env already exists.
+python scripts/init_env.py
+export COMPOSE_PROJECT_NAME=clinresearch-review
+export COMPOSE_FILE=docker-compose.yml:docker-compose.ci.yml
+docker compose up --no-build -d --wait --wait-timeout 300
+python scripts/smoke_demo.py
+docker compose run --rm --no-deps ingest python -m clinresearch.cli analyze \
+  --observation-end 2025-01-01 --split-date 2024-01-01 \
+  --output /app/reports/research
+python scripts/smoke_research.py
+```
+
+The fixture has **zero eligible inpatient indices and zero positives**. The
+research panel must show `insufficient_data`, without invented scores. Output
+folders are never overwritten: for repeat runs choose a fresh directory and set
+`RESEARCH_REPORT_PATH` on the API to display it. Use a different Compose project
+for isolation; do not remove existing database volumes. In a certificate-proxy
+environment, mount the trusted CA bundle read-only into the `deps` service and
+set `PIP_CERT` to that path, keeping TLS verification enabled.
+
+## Demo screenshots
+
+Captured from the running source-mounted Compose demo with the committed
+fictional fixture. These show software behavior, not research findings.
+
+![Synthetic EHR dashboard](docs/images/synthetic-dashboard.png)
+![Research panel retaining insufficient data](docs/images/synthetic-research.png)
+
+The [fixture cohort flow](docs/demo-cohort-flow.csv) records all three encounters
+as excluded non-inpatient and all three patients as having no inpatient index.
+Regenerate it using the analysis command above; each run also emits a flow CSV.
+
 ## Milestones
 
 1. **Clinical data platform:** validated Synthea ingestion, normalized SQL tables,

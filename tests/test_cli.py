@@ -70,3 +70,29 @@ def test_cli_analysis(fixture_dir, tmp_path):
     again = subprocess.run(command, env=env, capture_output=True, text=True, timeout=30)
     assert again.returncode == 1
     assert "Analysis not written" in again.stderr
+
+
+def test_cli_analysis_database_failure_is_sanitized(tmp_path):
+    env = {**os.environ, "DATABASE_URL": f"sqlite:///{tmp_path / 'missing.db'}"}
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "clinresearch.cli",
+            "analyze",
+            "--observation-end",
+            "2025-01-01",
+            "--split-date",
+            "2024-01-01",
+            "--output",
+            str(tmp_path / "output"),
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 1
+    assert "database or output unavailable" in result.stderr
+    assert "Traceback" not in result.stderr
+    assert not (tmp_path / "output").exists()

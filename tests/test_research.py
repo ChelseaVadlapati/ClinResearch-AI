@@ -252,8 +252,13 @@ def test_backdated_condition_from_future_encounter_is_unavailable(engine):
         encounter(session, "future", START + timedelta(days=60), START + timedelta(days=61))
         session.add(
             Condition(
-                id="backdated", patient_id="p", encounter_id="future", system="SNOMED",
-                start=date(2019, 1, 1), code="future-code", description="Diabetes",
+                id="backdated",
+                patient_id="p",
+                encounter_id="future",
+                system="SNOMED",
+                start=date(2019, 1, 1),
+                code="future-code",
+                description="Diabetes",
             )
         )
         session.commit()
@@ -310,10 +315,15 @@ def test_row_order_does_not_change_model_or_bootstrap():
     assert evaluate(rows, date(2020, 7, 1)) == evaluate(list(reversed(rows)), date(2020, 7, 1))
 
 
-@pytest.mark.parametrize("field,value", [
-    ("readmission_30d", 2), ("readmission_30d", float("nan")),
-    ("length_of_stay_days", -1), ("age", float("inf")),
-])
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("readmission_30d", 2),
+        ("readmission_30d", float("nan")),
+        ("length_of_stay_days", -1),
+        ("age", float("inf")),
+    ],
+)
 def test_invalid_model_inputs_fail_closed(field, value):
     rows = sample_rows()
     rows[0][field] = value
@@ -321,14 +331,20 @@ def test_invalid_model_inputs_fail_closed(field, value):
         evaluate(rows, date(2020, 7, 1))
 
 
-@pytest.mark.parametrize("change", [
-    lambda r: r.update(notes=[]),
-    lambda r: r["evaluation"].update(status="unknown"),
-    lambda r: r["evaluation"].update(metrics={"roc_auc": 0.99}),
-    lambda r: r["evaluation"]["split"]["train"].update(patients=-1),
-    lambda r: r.update(synthetic_only=False),
-    lambda r: r.update(generated_at="not-a-timestamp"),
-])
+@pytest.mark.parametrize(
+    "change",
+    [
+        lambda r: r.update(notes=[]),
+        lambda r: r["cohort_flow"][0].update(count=999),
+        lambda r: r.update(observation_end_exclusive="invalid"),
+        lambda r: r["evaluation"].update(split_date="2030-01-01"),
+        lambda r: r["evaluation"].update(status="unknown"),
+        lambda r: r["evaluation"].update(metrics={"roc_auc": 0.99}),
+        lambda r: r["evaluation"]["split"]["train"].update(patients=-1),
+        lambda r: r.update(synthetic_only=False),
+        lambda r: r.update(generated_at="not-a-timestamp"),
+    ],
+)
 def test_malformed_nested_reports_return_503(loaded, tmp_path, monkeypatch, change):
     output = tmp_path / "bad-report"
     report = run_analysis(loaded, date(2025, 1, 1), date(2024, 1, 1), output)

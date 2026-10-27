@@ -73,3 +73,46 @@ argument 2 and compare the four CSVs. Do not overwrite existing outputs.
 Generated files remain under ignored `data/research-validation/`; the default
 Docker demo report is under ignored `reports/research/`. Generated records and
 model artifacts are not committed. Hosted CI is a separate check after push.
+
+
+## PR review verification — 2026-10-26 (America/New_York)
+
+Reviewed the existing feature branch without rebuilding an application image or
+removing existing database volumes. Corrected Ruff failures, inconsistent saved
+flow/date validation, CLI database/output failure handling, and the source-mounted
+Streamlit startup error (`global.developmentMode` inferred from `/deps`).
+Browser inspection also found internal API requests being sent through the proxy;
+Compose now excludes its internal API hostname via `NO_PROXY`. CI checks this
+connection from inside the dashboard container.
+
+- Ruff check and format check passed.
+- Python 3.12.14 with PostgreSQL 16 and SQLite: **115 passed, 1 skipped**.
+  The skip is the intentionally SQLite-only legacy constraint-bypass fixture.
+  The existing Starlette transport deprecation warning remains.
+- Isolated source-mounted Compose PostgreSQL, API and dashboard health checks
+  passed without an application image build. Both `scripts/smoke_demo.py` and
+  `scripts/smoke_research.py` passed. Dependency installation in this environment
+  used a read-only trusted CA mount and `PIP_CERT`, with hash and TLS checks enabled.
+- Actual dashboard screenshots are in `docs/images/`; fixture aggregate flow is
+  in `docs/demo-cohort-flow.csv`. No real patient data is used by these demos.
+- Reanalyzed the available generated export (`data/synthea-validation/csv`):
+  2 patients, 545 encounters, 294 conditions, 7,793 input observations (7 duplicate
+  rejections). There was 1 eligible index and **0 positive outcomes**, with split
+  2010-01-01 and observation end 2025-01-01. Status remained `insufficient_data`.
+  This verification used a separate temporary SQLite database.
+- The previously documented 234-patient export is absent from this workspace.
+  Its historical one-positive result was not independently rerun in this review.
+  Neither available evidence nor that historical result supports model evaluation.
+
+Exact local checks after installing the locked dependencies:
+
+```bash
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+set -a; source .env; set +a
+TEST_DATABASE_URL="$DATABASE_URL" .venv/bin/pytest -q
+```
+
+Compose reproduction commands are in README under “Reproduce without rebuilding
+the application image.” Hosted Actions results are recorded in PR #1; the prior
+head failed lint and Streamlit startup, and this revision addresses both failures.

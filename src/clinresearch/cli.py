@@ -7,6 +7,8 @@ from dataclasses import asdict
 from datetime import date
 from pathlib import Path
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from clinresearch.database.load import load_export
 from clinresearch.database.session import initialize, make_engine
 from clinresearch.ingestion.csv import SchemaError, validate_export
@@ -32,7 +34,9 @@ def main() -> None:
 
         try:
             report = run_analysis(engine, args.observation_end, args.split_date, args.output)
-        except (ValueError, FileExistsError) as exc:
+        except (OSError, SQLAlchemyError):
+            parser.exit(1, "Analysis not written: database or output unavailable\n")
+        except ValueError as exc:
             parser.exit(1, f"Analysis not written: {exc}\n")
         print(json.dumps(report, indent=2))
         return

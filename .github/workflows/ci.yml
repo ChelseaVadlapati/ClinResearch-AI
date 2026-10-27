@@ -51,6 +51,9 @@ jobs:
       - run: python scripts/init_env.py
       - name: Start isolated services without building an application image
         run: docker compose up --no-build -d --wait --wait-timeout 300
+      - name: Verify dashboard can reach its internal API
+        run: |
+          docker compose exec -T dashboard python -c 'import os, requests; r = requests.get(os.environ["API_BASE_URL"] + "/cohort/summary", timeout=10); r.raise_for_status(); assert r.json()["counts"]["patients"] == 3'
       - name: Existing dashboard smoke checks
         run: python scripts/smoke_demo.py
       - name: Generate a new fixture research artifact

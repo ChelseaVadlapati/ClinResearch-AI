@@ -1,6 +1,6 @@
 """Validate saved aggregate reports before exposing them to the dashboard."""
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -102,9 +102,10 @@ class EvaluatedEvaluation(Evaluation):
     @model_validator(mode="after")
     def adequate_partitions(self):
         for partition in (self.split.train, self.split.test):
-            if partition.patients < 10 or min(
-                partition.positives, partition.patients - partition.positives
-            ) < 2:
+            if (
+                partition.patients < 10
+                or min(partition.positives, partition.patients - partition.positives) < 2
+            ):
                 raise ValueError("Evaluated report has insufficient outcomes")
         return self
 
@@ -139,8 +140,21 @@ class ResearchReport(Contract):
     def valid_provenance(self):
         if datetime.fromisoformat(self.generated_at).tzinfo is None:
             raise ValueError("Report timestamp must include timezone")
-        partitions = (self.evaluation.split.train, self.evaluation.split.test,
-                      self.evaluation.split.purged)
+        if date.fromisoformat(self.evaluation.split_date) >= date.fromisoformat(
+            self.observation_end_exclusive
+        ):
+            raise ValueError("Split must precede observation end")
+        if self.cohort_flow is not None:
+            from clinresearch.research.run import cohort_flow
+
+            expected = cohort_flow(self.cohort_audit)
+            if [row.model_dump() for row in self.cohort_flow] != expected:
+                raise ValueError("Saved cohort flow does not match audit")
+        partitions = (
+            self.evaluation.split.train,
+            self.evaluation.split.test,
+            self.evaluation.split.purged,
+        )
         if sum(part.patients for part in partitions) != self.cohort_audit["eligible_patients"]:
             raise ValueError("Split counts do not match cohort")
         if sum(part.positives for part in partitions) != self.cohort_audit["positive_outcomes"]:
