@@ -1,0 +1,71 @@
+# Disposable source-mounted checks: no application image build and no user demo volume.
+services:
+  deps:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - .:/app:ro
+      - ci_python:/deps
+    command:
+      - python
+      - -m
+      - pip
+      - install
+      - --require-hashes
+      - -r
+      - requirements.lock
+      - --target
+      - /deps
+  ingest:
+    image: python:3.12-slim
+    build: !reset null
+    working_dir: /app
+    environment:
+      PYTHONPATH: /deps:/app/src
+    volumes:
+      - .:/app:ro
+      - ./reports:/app/reports
+      - ci_python:/deps:ro
+    command:
+      - python
+      - -m
+      - clinresearch.cli
+      - ingest
+      - /app/tests/fixtures/synthea
+      - --report
+      - /app/reports/demo.json
+    depends_on:
+      deps:
+        condition: service_completed_successfully
+  api:
+    image: python:3.12-slim
+    build: !reset null
+    working_dir: /app
+    environment:
+      PYTHONPATH: /deps:/app/src
+    volumes:
+      - .:/app:ro
+      - ./reports:/app/reports:ro
+      - ci_python:/deps:ro
+    command: [python, -m, uvicorn, "clinresearch.api.app:app", --host, "0.0.0.0", --port, "8000"]
+  dashboard:
+    image: python:3.12-slim
+    build: !reset null
+    working_dir: /app
+    environment:
+      PYTHONPATH: /deps:/app/src
+    volumes:
+      - .:/app:ro
+      - ci_python:/deps:ro
+    command:
+      - python
+      - -m
+      - streamlit
+      - run
+      - src/clinresearch/dashboard/app.py
+      - --server.address=0.0.0.0
+      - --server.port=8501
+      - --global.developmentMode=false
+      - --server.fileWatcherType=none
+volumes:
+  ci_python:

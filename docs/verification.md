@@ -41,3 +41,78 @@ observations.csv  c9c7b3caff1e152c5019128c3c9c5e4e8048f575b7470cbd8552493981560f
 To reproduce automated checks, follow the README's PostgreSQL test commands.
 To repeat generator verification, use two new output directories with population
 argument 2 and compare the four CSVs. Do not overwrite existing outputs.
+
+## Milestone 2 verification — 2026-10-26
+
+- Python 3.11.17 and 3.12.14: **69 tests passed on each version**, with SQLite and
+  isolated PostgreSQL schemas enabled. Includes three dashboard report states,
+  the CLI, temporal purging, future-record invariance, and training-only scaling.
+- Ruff lint/format and whitespace checks passed. The updated hash lock installed
+  on both Python versions. The existing Starlette TestClient deprecation warning
+  remains non-blocking.
+- Updated Docker image built; PostgreSQL, API, and dashboard became healthy.
+  Existing HTTP smoke checks passed, and `/research/report` returned the saved
+  fixture analysis with `insufficient_data`. The fixture has no eligible inpatient
+  index discharges; no scores or notes were invented.
+- Synthea v3.3.0 generated population argument 200 with the script's fixed seeds,
+  dates, and locale. Export contained 234 patients (including deceased overflow),
+  48,198 encounters, 25,272 conditions, and 646,413 observations. The validator
+  rejected 116 exact normalized observation duplicates, accepting 646,297.
+  Import exited 2 as documented; all rejection reasons were inspected. This run
+  used a separate SQLite database and did not alter the PostgreSQL demo cohort.
+- The generated cohort, using observation end 2025-01-01 and a preselected split
+  date 2010-01-01, yielded 122 eligible patients and 122 labeled simulated notes.
+  There was only **one** positive outcome: train 82 patients/1 positive, test
+  39/0, and 1 purged patient. The evaluator correctly withheld model fitting and
+  metrics. This is insufficient for a meaningful readmission evaluation.
+- The fitting, baseline comparison, metrics, calibration bins, and seeded
+  bootstrap paths were exercised using a deliberately constructed 40-patient
+  software fixture. This verifies executable code, **not research performance**.
+  No trained model validated on a sufficiently powered Synthea cohort is claimed.
+
+Generated files remain under ignored `data/research-validation/`; the default
+Docker demo report is under ignored `reports/research/`. Generated records and
+model artifacts are not committed. Hosted CI is a separate check after push.
+
+
+## PR review verification — 2026-10-26 (America/New_York)
+
+Reviewed the existing feature branch without rebuilding an application image or
+removing existing database volumes. Corrected Ruff failures, inconsistent saved
+flow/date validation, CLI database/output failure handling, and the source-mounted
+Streamlit startup error (`global.developmentMode` inferred from `/deps`).
+Browser inspection also found internal API requests being sent through the proxy;
+Compose now excludes its internal API hostname via `NO_PROXY`. CI checks this
+connection from inside the dashboard container.
+
+- Ruff check and format check passed.
+- Python 3.12.14 with PostgreSQL 16 and SQLite: **115 passed, 1 skipped**.
+  The skip is the intentionally SQLite-only legacy constraint-bypass fixture.
+  The existing Starlette transport deprecation warning remains.
+- Isolated source-mounted Compose PostgreSQL, API and dashboard health checks
+  passed without an application image build. Both `scripts/smoke_demo.py` and
+  `scripts/smoke_research.py` passed. Dependency installation in this environment
+  used a read-only trusted CA mount and `PIP_CERT`, with hash and TLS checks enabled.
+- Actual dashboard screenshots are in `docs/images/`; fixture aggregate flow is
+  in `docs/demo-cohort-flow.csv`. No real patient data is used by these demos.
+- Reanalyzed the available generated export (`data/synthea-validation/csv`):
+  2 patients, 545 encounters, 294 conditions, 7,793 input observations (7 duplicate
+  rejections). There was 1 eligible index and **0 positive outcomes**, with split
+  2010-01-01 and observation end 2025-01-01. Status remained `insufficient_data`.
+  This verification used a separate temporary SQLite database.
+- The previously documented 234-patient export is absent from this workspace.
+  Its historical one-positive result was not independently rerun in this review.
+  Neither available evidence nor that historical result supports model evaluation.
+
+Exact local checks after installing the locked dependencies:
+
+```bash
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+set -a; source .env; set +a
+TEST_DATABASE_URL="$DATABASE_URL" .venv/bin/pytest -q
+```
+
+Compose reproduction commands are in README under “Reproduce without rebuilding
+the application image.” Hosted Actions results are recorded in PR #1; the prior
+head failed lint and Streamlit startup, and this revision addresses both failures.

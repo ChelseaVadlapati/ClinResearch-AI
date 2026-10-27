@@ -59,5 +59,13 @@ The MVP reads CSV files and existing table keys into memory. It is intended for
 small portfolio/research demonstrations, not hospital-scale ETL. Schema evolution
 requires a future migration tool; `create_all` does not migrate existing tables.
 No authentication, role-based access, clinical terminology validation, unit
-conversion, clinical plausibility checks, model predictions, or causal analyses
+conversion, clinical plausibility checks, clinical prediction service, or causal analyses
 are provided. Bindings are local-only in Compose. Do not deploy with real data.
+
+Milestone 2 adds an offline research workflow in `research/`: SQL cohort selection,
+discharge-time simulated notes, rule-based concept extraction, and a fixed
+logistic baseline with a purged temporal split. JSON/CSV/JSONL artifacts live under
+ignored `reports/`; the API mounts these read-only and exposes the aggregate report
+at `/research/report`. The dashboard displays this saved snapshot separately from
+live database summaries. No schema change is needed. See [research.md](research.md)
+for definitions, commands, evaluation guardrails, and limitations.
